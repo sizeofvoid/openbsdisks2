@@ -33,6 +33,7 @@ QString BlockPartition::name() const
 }
 
 BlockPartition::BlockPartition(Block* parent)
-    : QObject(parent), partTableBlock(nullptr)
+    : QObject(parent)
+    , partTableBlock(nullptr)
 {
 }

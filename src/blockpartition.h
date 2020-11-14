@@ -29,8 +29,7 @@
 #include <QObject>
 
 class Block;
-class BlockPartition : public QObject
-{
+class BlockPartition : public QObject {
     Q_OBJECT
 public:
     BlockPartition(Block* parent);

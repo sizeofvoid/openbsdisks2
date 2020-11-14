@@ -24,9 +24,9 @@
     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <fcntl.h>
 #include <sys/cdio.h>
 #include <sys/ioctl.h>
-#include <fcntl.h>
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -34,9 +34,9 @@
 
 #include "drive.h"
 
-void Drive::Eject(const QVariantMap &options)
+void Drive::Eject(const QVariantMap& options)
 {
-    if(!optical())
+    if (!optical())
         return;
 
     int fd = open((QStringLiteral("/dev/") + geomName).toLocal8Bit().constData(), O_RDONLY);
@@ -70,7 +70,7 @@ bool Drive::optical() const
 
 QStringList Drive::mediaCompatibility() const
 {
-    if(optical())
+    if (optical())
         return {QStringLiteral("optical_cd")};
     return QStringList();
 }
@@ -80,12 +80,10 @@ QString Drive::vendor() const
     return description;
 }
 
-
 qulonglong Drive::driveSize() const
 {
     return size;
 }
-
 
 QString Drive::serial() const
 {
@@ -104,7 +102,7 @@ bool Drive::removable() const
 
 QString Drive::connectionBus() const
 {
-    if(transport == CAM_TR_USB)
+    if (transport == CAM_TR_USB)
         return QStringLiteral("usb");
     else
         return QString();
@@ -117,11 +115,13 @@ bool Drive::bsdisks_IsHotpluggableR() const
 
 QString Drive::bsdisks_ConnectionBusR() const
 {
-    switch(transport)
-    {
-        case CAM_TR_ATA: return QStringLiteral("ata");
-        case CAM_TR_SCSI: return QStringLiteral("scsi");
-        default: return QString();
+    switch (transport) {
+    case CAM_TR_ATA:
+        return QStringLiteral("ata");
+    case CAM_TR_SCSI:
+        return QStringLiteral("scsi");
+    default:
+        return QString();
     }
 }
 
@@ -131,6 +131,7 @@ QString Drive::bsdisks_AtaSataR() const
 }
 
 Drive::Drive::Drive()
-    : camcontrolProbeDone(false), geomProbeDone(false)
+    : camcontrolProbeDone(false)
+    , geomProbeDone(false)
 {
 }

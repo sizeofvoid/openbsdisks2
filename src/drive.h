@@ -26,18 +26,16 @@
 
 #pragma once
 
-#include <QObject>
 #include <QDBusObjectPath>
+#include <QObject>
 
 #include "adaptors.h"
 #include "camcontrolprober.h"
 
 class Drive : public QObject,
-              public QDBusContext
-{
+              public QDBusContext {
     Q_OBJECT
 public:
-
     Drive();
 
     QDBusObjectPath dbusPath;
@@ -89,5 +87,5 @@ public:
     QString bsdisks_AtaSataR() const;
 
 public slots:
-    void Eject(const QVariantMap &options);
+    void Eject(const QVariantMap& options);
 };

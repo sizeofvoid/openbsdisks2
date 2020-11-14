@@ -34,9 +34,9 @@ void BlockPartTable::setTableType(const QString& tt)
 
 QString BlockPartTable::tableType() const
 {
-    if(m_tableType == QStringLiteral("MBR"))
+    if (m_tableType == QStringLiteral("MBR"))
         return QStringLiteral("dos");
-    if(m_tableType == QStringLiteral("GPT"))
+    if (m_tableType == QStringLiteral("GPT"))
         return QStringLiteral("gpt");
 
     return QString();
@@ -45,5 +45,4 @@ QString BlockPartTable::tableType() const
 BlockPartTable::BlockPartTable(Block* parent)
     : QObject(parent)
 {
-
 }

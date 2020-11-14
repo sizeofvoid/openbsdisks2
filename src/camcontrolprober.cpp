@@ -32,7 +32,7 @@
 #include <QProcess>
 
 extern "C" {
-    int camcontrol(const char* device_path, struct camcontrolreturn* retval);
+int camcontrol(const char* device_path, struct camcontrolreturn* retval);
 }
 
 void CamControlProber::run()
@@ -41,10 +41,10 @@ void CamControlProber::run()
 
     int error = camcontrol(m_dev.toLocal8Bit().data(), &ret);
 
-    if(m_dev.startsWith("cd") || m_dev.startsWith("mmcsd"))
+    if (m_dev.startsWith("cd") || m_dev.startsWith("mmcsd"))
         ret.is_removable = 1;
 
-    if(error)
+    if (error)
         qDebug() << "camcontrol failed";
 
     emit finished(ret.is_removable, ret.transport, ret.is_sata);

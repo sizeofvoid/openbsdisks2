@@ -29,14 +29,15 @@
 #include <sys/types.h>
 
 #include <QObject>
-#include <QSharedData>
 #include <QRunnable>
+#include <QSharedData>
 
-class DiskInfo
-{
+class DiskInfo {
     friend class GeomProber;
+
 public:
-    DiskInfo() : d(new DiskInfoD) {};
+    DiskInfo()
+        : d(new DiskInfoD) {};
 
     QString devName() const { return d->devName; }
     QString descr() const { return d->descr; }
@@ -45,9 +46,9 @@ public:
     u_int sectorSize() const { return d->sectorSize; }
     u_int sectors() const { return d->sectors; }
     u_int heads() const { return d->heads; }
+
 private:
-    struct DiskInfoD : public QSharedData
-    {
+    struct DiskInfoD : public QSharedData {
         QString devName;
         QString descr;
         QString ident;
@@ -60,20 +61,21 @@ private:
 };
 Q_DECLARE_METATYPE(DiskInfo)
 
-class Part
-{
+class Part {
     friend class GeomProber;
+
 public:
-    Part() : d(new PartD) {};
+    Part()
+        : d(new PartD) {};
 
     QString type() const { return d->type; }
     long long unsigned int length() const { return d->length; }
     u_int offset() const { return d->offset; }
     u_char rawtype() const { return d->rawtype; }
     u_char index() const { return d->index; }
+
 private:
-    struct PartD : public QSharedData
-    {
+    struct PartD : public QSharedData {
         QString type;
         long long unsigned int length;
         u_int offset;
@@ -84,17 +86,18 @@ private:
 };
 Q_DECLARE_METATYPE(Part)
 
-class PartTableInfo
-{
+class PartTableInfo {
     friend class GeomProber;
+
 public:
-    PartTableInfo() : d(new PartInfoD) {};
+    PartTableInfo()
+        : d(new PartInfoD) {};
 
     QString scheme() const { return d->scheme; }
     QHash<QString, Part> partitions() const { return d->partitions; }
+
 private:
-    struct PartInfoD : public QSharedData
-    {
+    struct PartInfoD : public QSharedData {
         QString scheme;
         QHash<QString, Part> partitions;
     };
@@ -102,12 +105,14 @@ private:
 };
 Q_DECLARE_METATYPE(PartTableInfo)
 
-class GeomProber : public QObject, public QRunnable
-{
+class GeomProber : public QObject, public QRunnable {
     Q_OBJECT
 public:
-    GeomProber(QString dev = QString()) : m_dev(dev) {}
-    virtual ~GeomProber() {}
+    GeomProber(QString dev = QString())
+        : m_dev(dev)
+    {
+    }
+    virtual ~GeomProber() { }
     virtual void run() override;
 
 signals:

@@ -29,22 +29,19 @@
 #ifndef CAMCONTROLPROBER_H
 #define CAMCONTROLPROBER_H
 
-enum camdevicetype
-{
+enum camdevicetype {
     CAM_DT_ATA,
     CAM_DT_SCSI
 };
 
-enum camtransport
-{
+enum camtransport {
     CAM_TR_USB,
     CAM_TR_SCSI,
     CAM_TR_ATA,
     CAM_TR_UNKNOWN
 };
 
-struct camcontrolreturn
-{
+struct camcontrolreturn {
     enum camtransport transport;
     int is_sata;
     int is_removable;
@@ -55,8 +52,7 @@ struct camcontrolreturn
 #include <QObject>
 #include <QRunnable>
 
-class CamControlProber : public QObject,  public QRunnable
-{
+class CamControlProber : public QObject, public QRunnable {
     Q_OBJECT
 public:
     CamControlProber(const QString& dev);

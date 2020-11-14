@@ -42,11 +42,10 @@ void FilesystemProber::run()
 
     int exitCode = p.exitCode();
 
-    if(!exitCode)
+    if (!exitCode)
         m_fs = p.readAllStandardOutput().trimmed();
     else
         m_fs.clear();
 
     emit finished(m_fs);
 }
-

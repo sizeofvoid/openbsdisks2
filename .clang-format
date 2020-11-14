@@ -1,0 +1,9 @@
+﻿---
+BasedOnStyle: WebKit
+BreakBeforeBraces: Stroustrup
+Cpp11BracedListStyle: 'true'
+Language: Cpp
+Standard: Auto
+UseTab: Never
+
+...

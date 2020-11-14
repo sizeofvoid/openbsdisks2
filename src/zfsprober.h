@@ -30,18 +30,19 @@
 #include <QRunnable>
 #include <QSharedData>
 
-class ZFSInfo
-{
+class ZFSInfo {
     friend class ZFSProber;
+
 public:
-    ZFSInfo() : d(new ZFSInfoD) {};
+    ZFSInfo()
+        : d(new ZFSInfoD) {};
 
     QString dataSet() const { return d->dataset; }
     QString mountPoint() const { return d->mountpoint; }
     bool isMounted() const { return d->isMounted; }
+
 private:
-    struct ZFSInfoD : public QSharedData
-    {
+    struct ZFSInfoD : public QSharedData {
         QString dataset;
         QString mountpoint;
         bool isMounted;
@@ -50,12 +51,14 @@ private:
 };
 Q_DECLARE_METATYPE(ZFSInfo)
 
-class ZFSProber : public QObject, public QRunnable
-{
+class ZFSProber : public QObject, public QRunnable {
     Q_OBJECT
 public:
-    ZFSProber(QString dev = QString()) : m_dev(dev) {}
-    virtual ~ZFSProber() {}
+    ZFSProber(QString dev = QString())
+        : m_dev(dev)
+    {
+    }
+    virtual ~ZFSProber() { }
     virtual void run() override;
 
 signals:

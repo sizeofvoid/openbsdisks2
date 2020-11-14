@@ -29,7 +29,7 @@
 #include <QDebug>
 #include <libgeom.h>
 
-template<typename T>
+template <typename T>
 QHash<QString, QString> getConfig(const T* p)
 {
     QHash<QString, QString> config;
@@ -48,8 +48,7 @@ void GeomProber::run()
     gmesh mesh;
 
     int error = geom_gettree(&mesh);
-    if (error != 0)
-    {
+    if (error != 0) {
         qWarning() << "Cannot get GEOM tree";
         return;
     }
@@ -59,13 +58,12 @@ void GeomProber::run()
     gclass* c = nullptr;
     LIST_FOREACH(c, &mesh.lg_class, lg_class)
     {
-        if (strcmp(c->lg_name, "LABEL") == 0)
-        {
+        if (strcmp(c->lg_name, "LABEL") == 0) {
             ggeom* g = nullptr;
             LIST_FOREACH(g, &c->lg_geom, lg_geom)
             {
                 QString geomName = QString::fromLatin1(g->lg_name);
-                if(geomName != m_dev)
+                if (geomName != m_dev)
                     continue;
 
                 gprovider* p = nullptr;
@@ -76,13 +74,12 @@ void GeomProber::run()
                 }
             }
         }
-        else if (strcmp(c->lg_name, "DISK") == 0)
-        {
+        else if (strcmp(c->lg_name, "DISK") == 0) {
             ggeom* g = nullptr;
             LIST_FOREACH(g, &c->lg_geom, lg_geom)
             {
                 QString geomName = QString::fromLatin1(g->lg_name);
-                if(geomName != m_dev && !m_dev.isEmpty())
+                if (geomName != m_dev && !m_dev.isEmpty())
                     continue;
 
                 gprovider* p = g->lg_provider.lh_first;
@@ -101,12 +98,11 @@ void GeomProber::run()
                 diskInfo.d->heads = config["fwheads"].toUInt();
 
                 emit gotDisk(diskInfo);
-                if(!m_dev.isEmpty())
+                if (!m_dev.isEmpty())
                     break;
             }
         }
-        else if (strcmp(c->lg_name, "PART") == 0)
-        {
+        else if (strcmp(c->lg_name, "PART") == 0) {
             ggeom* g = nullptr;
             LIST_FOREACH(g, &c->lg_geom, lg_geom)
             {
@@ -135,11 +131,11 @@ void GeomProber::run()
 
                     partInfo.d->partitions[partName] = part;
 
-                    if(m_dev == partName)
+                    if (m_dev == partName)
                         emit gotPart(geomName, part);
                 }
 
-                if(m_dev.isEmpty() || m_dev == geomName)
+                if (m_dev.isEmpty() || m_dev == geomName)
                     emit gotPartTable(partInfo);
             }
         }
@@ -149,4 +145,3 @@ void GeomProber::run()
     emit finished();
     geom_deletetree(&mesh);
 }
-

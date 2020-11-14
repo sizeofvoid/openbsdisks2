@@ -30,13 +30,13 @@
 #include <sysexits.h>
 #include <syslog.h>
 
-#include "bsdisks.h"
-#include "manageradaptor.h"
 #include "adaptors.h"
-#include "objectmanager.h"
 #include "block.h"
+#include "bsdisks.h"
 #include "drive.h"
 #include "filesystemprober.h"
+#include "manageradaptor.h"
+#include "objectmanager.h"
 
 ObjectManager manager;
 BsdisksConfig config;
@@ -51,13 +51,11 @@ static QtMessageHandler old_message_handler = NULL;
 static bool syslog_output;
 static bool no_debug;
 
-static void message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+static void message_handler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-    if(syslog_output)
-    {
+    if (syslog_output) {
         QByteArray local_msg = msg.toLocal8Bit();
-        switch (type)
-        {
+        switch (type) {
         case QtDebugMsg:
             syslog(LOG_DEBUG | LOG_DAEMON, "%s\n", local_msg.constData());
             break;
@@ -78,7 +76,7 @@ static void message_handler(QtMsgType type, const QMessageLogContext &context, c
         }
     }
 
-    if((old_message_handler != NULL) && !no_debug)
+    if ((old_message_handler != NULL) && !no_debug)
         (*old_message_handler)(type, context, msg);
 }
 
@@ -99,31 +97,29 @@ int main(int argc, char** argv)
     QFile configFile("/etc/bsdisks.conf");
     configFile.open(QIODevice::ReadOnly);
 
-    if(configFile.isOpen())
-    {
+    if (configFile.isOpen()) {
         QByteArray line;
         do {
             line = configFile.readLine(1024);
             QString statement = QString::fromLocal8Bit(line).trimmed();
             QStringList parsed = statement.split('=');
 
-            if(parsed.size() < 2)
+            if (parsed.size() < 2)
                 continue;
 
-            if(parsed[0].trimmed().startsWith('#'))
+            if (parsed[0].trimmed().startsWith('#'))
                 continue;
 
-            if(parsed[0].trimmed() == QStringLiteral("mount_msdosfs_flags"))
+            if (parsed[0].trimmed() == QStringLiteral("mount_msdosfs_flags"))
                 BsdisksConfig::get().MountMsdosfsFlags = parsed[1].trimmed();
-        } while(!line.isEmpty());
+        } while (!line.isEmpty());
     }
     configFile.close();
 
     QCoreApplication::setSetuidAllowed(true);
     QCoreApplication app(argc, argv);
 
-    if(!QDBusConnection::systemBus().registerService("org.freedesktop.UDisks2"))
-    {
+    if (!QDBusConnection::systemBus().registerService("org.freedesktop.UDisks2")) {
         qCritical() << "Could not register UDisks2 service";
         return EX_UNAVAILABLE;
     }
@@ -141,7 +137,6 @@ int main(int argc, char** argv)
 
     QDBusConnection::systemBus().registerObject(
         "/org/freedesktop/UDisks2", &manager);
-
 
     app.exec();
 }

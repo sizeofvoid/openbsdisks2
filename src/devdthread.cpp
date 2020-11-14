@@ -32,9 +32,9 @@
 #include <QRegularExpression>
 
 #include <errno.h>
-#include <sys/types.h>
 #include <sys/event.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 
 void DevdThread::parseLine(QString line)
@@ -42,13 +42,12 @@ void DevdThread::parseLine(QString line)
     // !system=DEVFS subsystem=CDEV type=CREATE cdev=da0
     auto message = line.split(' ');
     QHash<QString, QString> data;
-    Q_FOREACH(auto m, message)
-    {
+    Q_FOREACH (auto m, message) {
         auto mm = m.split('=');
 
         //skip things like "on", "at", etc.
         // +umass0 at bus=0 hubaddr=1 port=2 <...> intprotocol=0x50 on uhub0
-        if(mm.count() == 1)
+        if (mm.count() == 1)
             continue;
 
         data.insert(mm[0], mm[1]);
@@ -63,25 +62,21 @@ void DevdThread::parseLine(QString line)
     if (QCoreApplication::arguments().contains("--debug-devd"))
         qDebug() << "devd message: " << data;
 
-
     // !system=GEOM subsystem=DEV type=CREATE cdev=da0
     // GEOM messages are always appear after corresponding DEVFS ones, so
     // we are looking for them only
-    if(data["!system"] == "GEOM" &&
-        data["subsystem"] == "DEV")
-    {
-        if(data["type"] == "CREATE")
-        {
+    if (data["!system"] == "GEOM" && data["subsystem"] == "DEV") {
+        if (data["type"] == "CREATE") {
             emit blockAdded(devArg);
 
             // there are no subsystem=disk events for MMC, try to workaround it
             QRegularExpression re("mmcsd\\d$");
-            if(re.match(devArg).hasMatch())
+            if (re.match(devArg).hasMatch())
                 emit driveAdded(devArg);
         }
-        if(data["type"] == "DESTROY")
+        if (data["type"] == "DESTROY")
             emit blockRemoved(devArg);
-        if(data["type"] == "MEDIACHANGE")
+        if (data["type"] == "MEDIACHANGE")
             emit blockChanged(devArg);
 
         return;
@@ -89,10 +84,7 @@ void DevdThread::parseLine(QString line)
 
     // !system=GEOM subsystem=disk type=GEOM::physpath devname=da0
     // there is no devd event for drive removal
-    if(data["!system"] == "GEOM" &&
-        data["subsystem"] == "disk" &&
-        data["type"] == "GEOM::physpath")
-    {
+    if (data["!system"] == "GEOM" && data["subsystem"] == "disk" && data["type"] == "GEOM::physpath") {
         emit driveAdded(data["devname"].trimmed());
         return;
     }
@@ -109,18 +101,15 @@ void DevdThread::run()
     SUN_LEN(&addr);
 
     res = ::connect(s, (struct sockaddr*)&addr, sizeof(addr));
-    if(res == -1)
-    {
+    if (res == -1) {
         printf("Unable to connect to /var/run/devd.seqpacket.pipe: %s\n", strerror(errno));
         return;
     }
 
-    while(true)
-    {
+    while (true) {
         char buf[2048];
         res = recv(s, buf, 2048, 0);
-        if(res == -1)
-        {
+        if (res == -1) {
             printf("Unable to recv() from /var/run/devd.seqpacket.pipe: %s\n", strerror(errno));
             return;
         }

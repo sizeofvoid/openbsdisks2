@@ -29,17 +29,20 @@
 #include <QObject>
 #include <QRunnable>
 
-class FilesystemProber : public QObject, public QRunnable
-{
+class FilesystemProber : public QObject, public QRunnable {
     Q_OBJECT
 public:
-    FilesystemProber(QString dev) : m_dev(dev) {}
-    virtual ~FilesystemProber() {}
+    FilesystemProber(QString dev)
+        : m_dev(dev)
+    {
+    }
+    virtual ~FilesystemProber() { }
 
     void run() override;
 
 signals:
     void finished(QString);
+
 private:
     QString m_dev;
     QString m_fs;

@@ -33,8 +33,7 @@
 class Block;
 class Drive;
 
-class ObjectManager : public QObject
-{
+class ObjectManager : public QObject {
     Q_OBJECT
 public slots:
     DBUSManagerStruct GetManagedObjects();
@@ -50,8 +49,8 @@ public slots:
 
     void initialProbe();
 signals:
-    void InterfacesAdded(const QDBusObjectPath &object_path, const QVariantMapMap &interfaces_and_properties);
-    void InterfacesRemoved(const QDBusObjectPath &object_path, const QStringList &interfaces);
+    void InterfacesAdded(const QDBusObjectPath& object_path, const QVariantMapMap& interfaces_and_properties);
+    void InterfacesRemoved(const QDBusObjectPath& object_path, const QStringList& interfaces);
 
 private:
     void startFilesystemProbe(Block* b);

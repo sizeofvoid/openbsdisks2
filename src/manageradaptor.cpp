@@ -9,10 +9,10 @@
  */
 
 #include "manageradaptor.h"
-#include <QtCore/QMetaObject>
 #include <QtCore/QByteArray>
 #include <QtCore/QList>
 #include <QtCore/QMap>
+#include <QtCore/QMetaObject>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
@@ -21,7 +21,7 @@
  * Implementation of adaptor class ObjectManagerAdaptor
  */
 
-ObjectManagerAdaptor::ObjectManagerAdaptor(QObject *parent)
+ObjectManagerAdaptor::ObjectManagerAdaptor(QObject* parent)
     : QDBusAbstractAdaptor(parent)
 {
     // constructor
@@ -40,4 +40,3 @@ DBUSManagerStruct ObjectManagerAdaptor::GetManagedObjects()
     QMetaObject::invokeMethod(parent(), "GetManagedObjects", Q_RETURN_ARG(DBUSManagerStruct, object_paths_interfaces_and_properties));
     return object_paths_interfaces_and_properties;
 }
-

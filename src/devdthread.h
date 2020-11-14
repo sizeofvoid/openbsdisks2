@@ -28,8 +28,7 @@
 
 #include <QThread>
 
-class DevdThread : public QThread
-{
+class DevdThread : public QThread {
     Q_OBJECT
 public:
     void run() override;

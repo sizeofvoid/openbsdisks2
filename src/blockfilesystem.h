@@ -30,15 +30,14 @@
 
 class Block;
 
-class BlockFilesystem : public QObject
-{
+class BlockFilesystem : public QObject {
     Q_OBJECT
 public:
     BlockFilesystem(Block* parent);
     virtual ~BlockFilesystem();
 
-    QString Mount(const QVariantMap &options);
-    void Unmount(const QVariantMap &options);
+    QString Mount(const QVariantMap& options);
+    void Unmount(const QVariantMap& options);
 
     QString filesystem;
     QByteArrayList mountPoints;

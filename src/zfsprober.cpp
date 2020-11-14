@@ -26,17 +26,16 @@
 
 #include "zfsprober.h"
 
-#include <sys/param.h>
 #include <sys/module.h>
+#include <sys/param.h>
 
 #include <QDebug>
-#include <QRegularExpression>
 #include <QProcess>
+#include <QRegularExpression>
 
 void ZFSProber::run()
 {
-    if(::modfind("zfs") == -1)
-    {
+    if (::modfind("zfs") == -1) {
         qDebug() << "Not probing ZFS, the kernel module isn't loaded";
         return;
     }
@@ -51,19 +50,18 @@ void ZFSProber::run()
     Q_ASSERT(res);
 
     int exitCode = zfsProcess.exitCode();
-    if(exitCode)
+    if (exitCode)
         return;
 
     QString output = zfsProcess.readAllStandardOutput().trimmed();
-    if(output.isEmpty())
+    if (output.isEmpty())
         return;
 
     // prepare for "zfs get mounted,mountpoint" call
     args.clear();
     args << QStringLiteral("get") << QStringLiteral("-H") << QStringLiteral("mounted,mountpoint");
 
-    Q_FOREACH(auto line, output.split('\n'))
-    {
+    Q_FOREACH (auto line, output.split('\n')) {
         // ztank/home      canmount        on      default
         // ztank/kderoot   canmount        noauto  local
         auto parsed = line.splitRef(QRegularExpression("\\s+"));
@@ -71,8 +69,7 @@ void ZFSProber::run()
         auto dataset = parsed[0];
         auto canmountVal = parsed[2];
 
-        if(canmountVal == QStringLiteral("noauto"))
-        {
+        if (canmountVal == QStringLiteral("noauto")) {
             args << dataset.toString();
             zfsProcess.start(QStringLiteral("/sbin/zfs"), args);
 
@@ -80,7 +77,7 @@ void ZFSProber::run()
             Q_ASSERT(res);
 
             exitCode = zfsProcess.exitCode();
-            if(exitCode)
+            if (exitCode)
                 return;
 
             // ztank/kderoot   mounted no      -
@@ -94,8 +91,7 @@ void ZFSProber::run()
             args.pop_back();
 
             // we aren't interested in root FS
-            if(mountpoint != '/')
-            {
+            if (mountpoint != '/') {
                 ZFSInfo info;
                 info.d->dataset = dataset.toString();
                 info.d->mountpoint = mountpoint;

@@ -26,10 +26,10 @@
 
 #pragma once
 
-#include <QObject>
-#include <QDBusObjectPath>
 #include <QDBusContext>
+#include <QDBusObjectPath>
 #include <QDebug>
+#include <QObject>
 #include <QUrl>
 
 #include <bitset>
@@ -39,8 +39,7 @@
 #include "blockparttable.h"
 
 class Block : public QObject,
-              public QDBusContext
-{
+              public QDBusContext {
     Q_OBJECT
 public:
     Block(QObject* parent = 0);
@@ -159,16 +158,16 @@ public:
     }
 
 public slots:
-    QString Mount(const QVariantMap &options)
+    QString Mount(const QVariantMap& options)
     {
-        if(!bFilesystem)
+        if (!bFilesystem)
             return QString();
 
         return bFilesystem->Mount(options);
     }
-    void Unmount(const QVariantMap &options)
+    void Unmount(const QVariantMap& options)
     {
-        if(!bFilesystem)
+        if (!bFilesystem)
             return;
 
         return bFilesystem->Unmount(options);
