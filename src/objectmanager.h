@@ -29,11 +29,9 @@
 #include <QHash>
 
 #include "manageradaptor.h"
-#include "geomprober.h"
 
 class Block;
 class Drive;
-class ZFSInfo;
 
 class ObjectManager : public QObject
 {
@@ -41,7 +39,7 @@ class ObjectManager : public QObject
 public slots:
     DBUSManagerStruct GetManagedObjects();
 
-    void filesystemAdded(Block* b, QString fs, const ZFSInfo* zfsInfo = nullptr);
+    void filesystemAdded(Block* b, QString fs);
 
     void addBlock(QString dev);
     void updateBlock(QString dev);
@@ -50,8 +48,6 @@ public slots:
     void addDrive(QString dev);
     void removeDrive(QString dev);
 
-    void addZFSDataset(const ZFSInfo& zfsInfo);
-
     void initialProbe();
 signals:
     void InterfacesAdded(const QDBusObjectPath &object_path, const QVariantMapMap &interfaces_and_properties);
@@ -59,14 +55,13 @@ signals:
 
 private:
     void startFilesystemProbe(Block* b);
-    void startGeomProbe(Block* b);
 
     void registerDrive(Drive* d);
     bool registerBlock(Block* d, bool tryPostponed = true);
     void postponeRegistration(QString blockName);
     void tryRegisterPostponed();
 
-    void addPartition(Block* b, const QString& tableBlockName, const Part& partInfo);
+    void addPartition(Block* b, const QString& tableBlockName);
 
     void addInterfaces(QDBusObjectPath path, QList<std::pair<QString, QDBusAbstractAdaptor*>> newInterfaces);
     void removeInterfaces(QDBusObjectPath path, QStringList ifaces);

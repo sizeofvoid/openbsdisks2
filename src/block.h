@@ -34,7 +34,6 @@
 
 #include <bitset>
 
-#include "geomprober.h"
 #include "blockfilesystem.h"
 #include "blockpartition.h"
 #include "blockparttable.h"

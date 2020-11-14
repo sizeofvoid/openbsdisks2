@@ -36,10 +36,7 @@
 #include "objectmanager.h"
 #include "block.h"
 #include "drive.h"
-#include "geomprober.h"
 #include "filesystemprober.h"
-#include "zfsprober.h"
-#include "devdthread.h"
 
 ObjectManager manager;
 BsdisksConfig config;
@@ -92,10 +89,6 @@ int main(int argc, char** argv)
     qRegisterMetaType<QVariantMapMap>();
     qRegisterMetaType<DBUSManagerStruct>();
     qRegisterMetaType<QSet<QString>>();
-    qRegisterMetaType<DiskInfo>();
-    qRegisterMetaType<Part>();
-    qRegisterMetaType<PartTableInfo>();
-    qRegisterMetaType<ZFSInfo>();
 
     qDBusRegisterMetaType<QByteArrayList>();
     qDBusRegisterMetaType<Configuration>();
@@ -103,7 +96,7 @@ int main(int argc, char** argv)
     qDBusRegisterMetaType<QVariantMapMap>();
     qDBusRegisterMetaType<DBUSManagerStruct>();
 
-    QFile configFile(INSTALL_PREFIX "/etc/bsdisks.conf");
+    QFile configFile("/etc/bsdisks.conf");
     configFile.open(QIODevice::ReadOnly);
 
     if(configFile.isOpen())
@@ -149,12 +142,6 @@ int main(int argc, char** argv)
     QDBusConnection::systemBus().registerObject(
         "/org/freedesktop/UDisks2", &manager);
 
-    DevdThread devd;
-    QObject::connect(&devd, &DevdThread::driveAdded, &manager, &ObjectManager::addDrive);
-    QObject::connect(&devd, &DevdThread::blockAdded, &manager, &ObjectManager::addBlock);
-    QObject::connect(&devd, &DevdThread::blockChanged, &manager, &ObjectManager::updateBlock);
-    QObject::connect(&devd, &DevdThread::blockRemoved, &manager, &ObjectManager::removeBlock);
-    devd.start();
 
     app.exec();
 }

@@ -6,7 +6,6 @@
 #include "drive.h"
 #include "filesystemprober.h"
 #include "camcontrolprober.h"
-#include "zfsprober.h"
 
 DBUSManagerStruct ObjectManager::GetManagedObjects()
 {
@@ -57,34 +56,10 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
 
 void ObjectManager::initialProbe()
 {
-    auto* geomProber = new GeomProber;
-
-    QObject::connect(geomProber, &GeomProber::gotDisk, this,
-        [this](DiskInfo di)
-        {
-            addDrive(di.devName());
-
-            // assume that any object from `geom disk list` has a block device in /dev
-            addBlock(di.devName());
-        });
-    QObject::connect(geomProber, &GeomProber::gotPartTable, this,
-        [this](PartTableInfo pi)
-        {
-            foreach(auto devName, pi.partitions().keys())
-                addBlock(devName);
-        });
-
-    QThreadPool::globalInstance()->start(geomProber);
-
-    auto* zfsProber = new ZFSProber();
-    QObject::connect(zfsProber, &ZFSProber::gotDataset, this, &ObjectManager::addZFSDataset);
-
-    QThreadPool::globalInstance()->start(zfsProber);
-
     initialProbeDone = true;
 }
 
-void ObjectManager::filesystemAdded(Block* b, QString fs, const ZFSInfo* zfsInfo)
+void ObjectManager::filesystemAdded(Block* b, QString fs)
 {
     Q_ASSERT(b->bFilesystem == nullptr);
 
@@ -103,26 +78,14 @@ void ObjectManager::filesystemAdded(Block* b, QString fs, const ZFSInfo* zfsInfo
         b->idType = fs;
     }
 
-    if(fs == QStringLiteral("zfs"))
+    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes())
     {
-        bfs->zfsDataset = zfsInfo->dataSet();
-        bfs->zfsMountpoint = zfsInfo->mountPoint();
-        if(zfsInfo->isMounted())
-            bfs->mountPoints << zfsInfo->mountPoint().toLocal8Bit();
-
-        b->hasNoDrive = true;
-    }
-    else
-    {
-        for (const QStorageInfo &storage : QStorageInfo::mountedVolumes())
+        if(storage.isValid() && storage.isReady())
         {
-            if(storage.isValid() && storage.isReady())
+            if(!storage.device().compare(b->device().chopped(1)))
             {
-                if(!storage.device().compare(b->device().chopped(1)))
-                {
-                    bfs->mountPoints << storage.rootPath().toLocal8Bit();
-                    break;
-                }
+                bfs->mountPoints << storage.rootPath().toLocal8Bit();
+                break;
             }
         }
     }
@@ -146,7 +109,6 @@ void ObjectManager::addBlock(QString dev)
     b->dbusPath = QDBusObjectPath(UDisksBlockDevices + dev);
 
     startFilesystemProbe(b);
-    startGeomProbe(b);
 }
 
 void ObjectManager::updateBlock(QString dev)
@@ -157,7 +119,6 @@ void ObjectManager::updateBlock(QString dev)
     {
         b->probesDone.reset();
         b->probesDone.set(FILESYSTEM_PROBE);
-        startGeomProbe(b);
     }
     else
         b->needsAnotherProbe = true;
@@ -215,34 +176,6 @@ void ObjectManager::addDrive(QString dev)
     QString devPath = UDisksDrives + dev;
     d->dbusPath = QDBusObjectPath(devPath);
     d->geomName = dev;
-
-    auto geomProber = new GeomProber(d->geomName);
-    QObject::connect(geomProber, &GeomProber::gotDisk, this,
-                     [this, d](DiskInfo di)
-    {
-        d->size = di.mediaSize();
-        d->description = di.descr();
-        d->identifier = di.ident();
-
-        d->geomProbeDone = true;
-        if(d->camcontrolProbeDone)
-            registerDrive(d);
-    });
-
-    auto camControlProber = new CamControlProber(d->geomName);
-    QObject::connect(camControlProber, &CamControlProber::finished, this,
-                     [this, d](bool isRemovable, int transport, bool isAtaSata)
-    {
-        d->isRemovable = isRemovable;
-        d->ataSata = isAtaSata ? QStringLiteral("sata") : QStringLiteral("ata");
-        d->transport = static_cast<camtransport>(transport);
-        d->camcontrolProbeDone = true;
-        if(d->geomProbeDone)
-            registerDrive(d);
-    });
-
-    QThreadPool::globalInstance()->start(geomProber);
-    QThreadPool::globalInstance()->start(camControlProber);
 }
 
 void ObjectManager::removeDrive(QString dev)
@@ -289,7 +222,6 @@ bool ObjectManager::registerBlock(Block* b, bool tryPostponed)
         qDebug() << b->name << " changed, restarting probes ";
         b->needsAnotherProbe = false;
         b->probesDone.reset(GEOM_PROBE);
-        startGeomProbe(b);
         return false;
     }
 
@@ -364,23 +296,6 @@ void ObjectManager::registerDrive(Drive* d)
     tryRegisterPostponed();
 }
 
-void ObjectManager::addZFSDataset(const ZFSInfo& zfsInfo)
-{
-    QString normalizedDatasetName = zfsInfo.dataSet().replace('/', '_'); // turn pool/foo into pool_foo
-    Q_ASSERT(!m_blockObjects.contains(normalizedDatasetName));
-
-    auto* b = new Block;
-    m_blockObjects.insert(normalizedDatasetName, b);
-
-    QString devPath = UDisksBlockDevices + normalizedDatasetName;
-    b->name = normalizedDatasetName;
-    b->dbusPath = QDBusObjectPath(devPath);
-
-    filesystemAdded(b, QStringLiteral("zfs"), &zfsInfo);
-
-    registerBlock(b);
-}
-
 
 void ObjectManager::startFilesystemProbe(Block* b)
 {
@@ -406,86 +321,17 @@ void ObjectManager::startFilesystemProbe(Block* b)
     QThreadPool::globalInstance()->start(prober);
 }
 
-
-void ObjectManager::startGeomProbe(Block* b)
-{
-    auto prober = new GeomProber(b->name);
-
-    if(b->name.startsWith("md"))
-        b->hasNoDrive = true;
-
-    const QString devName = b->name;
-
-    QObject::connect(prober, &GeomProber::gotLabels, this,
-                     [this, devName](QStringList labels)
-    {
-        Block* b = m_blockObjects.value(devName);
-        if(!b)
-            return;
-
-        b->labels = labels;
-    });
-    QObject::connect(prober, &GeomProber::gotDisk, this,
-                     [this, devName](DiskInfo di)
-    {
-        Block* b = m_blockObjects.value(devName);
-        if(!b)
-            return;
-
-        b->size = di.mediaSize();
-        b->description = di.descr();
-        b->identifier = di.ident();
-    });
-    QObject::connect(prober, &GeomProber::gotPartTable, this,
-                     [this, devName](PartTableInfo pi)
-    {
-        Block* b = m_blockObjects.value(devName);
-        if(!b)
-            return;
-
-        // do not create BlockPartTable when called from updateBlock()
-        if(!b->bPartTable)
-            b->bPartTable = new BlockPartTable(b);
-
-        b->bPartTable->setTableType(pi.scheme());
-
-        for(auto it = pi.partitions().constBegin(); it != pi.partitions().cend(); it++)
-            b->bPartTable->partitionBlockNames << it.key();
-    });
-    QObject::connect(prober, &GeomProber::gotPart, this,
-                     [this, devName](QString tableBlockName, Part partInfo)
-    {
-        Block* b = m_blockObjects.value(devName);
-        if(!b)
-            return;
-
-        addPartition(b, tableBlockName, partInfo);
-    });
-    QObject::connect(prober, &GeomProber::finished, this,
-                     [this, devName]()
-    {
-        Block* b = m_blockObjects.value(devName);
-        if(!b)
-            return;
-
-        b->probesDone.set(GEOM_PROBE);
-        qDebug() << "Finished GEOM probe on " << b->name;
-        if(b->probesDone.all())
-            registerBlock(b);
-    });
-
-    QThreadPool::globalInstance()->start(prober);
-}
-
-void ObjectManager::addPartition(Block* b, const QString& tableBlockName, const Part& partInfo)
+void ObjectManager::addPartition(Block* b, const QString& tableBlockName)
 {
     auto* bp = new BlockPartition(b);
 
     bp->partBlockName = tableBlockName;
+    /*
     bp->partitionType = partInfo.type();
     bp->number = partInfo.index();
     bp->offset = partInfo.offset();
     bp->size = partInfo.length();
+    */
 
     b->bPartition = bp;
 }
