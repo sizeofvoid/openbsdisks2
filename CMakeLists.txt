@@ -1,43 +1,64 @@
-cmake_minimum_required(VERSION 3.0)
-project(bsdisks)
+cmake_minimum_required(VERSION 3.16.0)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
+# Version setup
+set(OPENBSDISKS_VERSION_MAJOR "0")
+set(OPENBSDISKS_VERSION_MINOR "0")
+set(OPENBSDISKS_VERSION_PATCH "1")
+set(OPENBSDISKS_VERSION "${OPENBSDISKS_VERSION_MAJOR}.${OPENBSDISKS_VERSION_MINOR}.${OPENBSDISKS_VERSION_PATCH}")
 
-find_package(Qt5Core)
-find_package(Qt5DBus)
+project(openbsdisks
+        VERSION ${OPENBSDISKS_VERSION}
+        DESCRIPTION ""
+        HOMEPAGE_URL "")
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
+            "Choose the type of build, options are: Debug Release RelWithDebInfo Profile"
+            FORCE)
+endif()
+
+include(GNUInstallDirs)
 
 option(INSTALL_POLKIT_RULES "Install polkit rules" OFF)
 option(INSTALL_MAN_PAGES "Install man pages" ON)
 
-add_definitions(-DINSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
 
-add_executable(bsdisks
-    main.cpp
-    adaptors.cpp
-    block.cpp
-    blockfilesystem.cpp
-    blockpartition.cpp
-    blockparttable.cpp
-    drive.cpp
-    geomprober.cpp
-    filesystemprober.cpp
-    camcontrolprober.cpp
-    zfsprober.cpp
-    manageradaptor.cpp
-    objectmanager.cpp
-    devdthread.cpp
+set(QT5COMPONENTS Core DBus)
+find_package(Qt5 COMPONENTS ${QT5COMPONENTS} REQUIRED)
+find_package(Threads REQUIRED)
 
-    camcontrol.c
+set(SOURCE
+    src/main.cpp
+    src/adaptors.cpp
+    src/block.cpp
+    src/blockfilesystem.cpp
+    src/blockpartition.cpp
+    src/blockparttable.cpp
+    src/drive.cpp
+    src/filesystemprober.cpp
+    src/manageradaptor.cpp
+    src/objectmanager.cpp
+
+    # old from bsdisks, not supported now
+    #src/camcontrol.c
+    #src/zfsprober.cpp
+    #src/geomprober.cpp
+    #src/camcontrolprober.cpp
+    #src/devdthread.cpp
 )
+add_executable(openbsdisks ${SOURCE})
 
-target_link_libraries(bsdisks Qt5::DBus Qt5::Core)
-target_link_libraries(bsdisks cam geom)
+target_link_libraries(openbsdisks Qt5::DBus Qt5::Core)
 
-install(TARGETS bsdisks
-    RUNTIME DESTINATION bin
-)
+target_compile_features(openbsdisks PRIVATE cxx_std_17)
+target_compile_options(openbsdisks PRIVATE "-Wall")
+target_compile_options(openbsdisks PRIVATE "-pipe")
+target_compile_options(openbsdisks PRIVATE "-fexceptions")
+
+install(TARGETS openbsdisks
+        RUNTIME DESTINATION bin COMPONENT Runtime)
 
 configure_file(org.freedesktop.UDisks2.service.in org.freedesktop.UDisks2.service)
 
