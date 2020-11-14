@@ -1,0 +1,7 @@
+# Sample bsdisks syslog configuration file.
+# Move to /usr/local/etc/syslog.d/bsdisks-syslog.conf and edit as necessary,
+# then run "service syslogd reload" as root.
+# See syslog.conf(5) for a description of this file's format.
+!bsdisks
+*.*						/var/log/bsdisks.log
+!*
