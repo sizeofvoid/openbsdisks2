@@ -33,8 +33,8 @@
 #include "adaptors.h"
 #include "block.h"
 #include "bsdisks.h"
+#include "disk_thread.h"
 #include "drive.h"
-#include "filesystemprober.h"
 #include "manageradaptor.h"
 #include "objectmanager.h"
 
@@ -137,6 +137,13 @@ int main(int argc, char** argv)
 
     QDBusConnection::systemBus().registerObject(
         "/org/freedesktop/UDisks2", &manager);
+
+    DiskThread disk;
+    QObject::connect(&disk, &DiskThread::deviceAdded,
+        &manager, &ObjectManager::addDrive);
+    QObject::connect(&disk, &DiskThread::blockAdded,
+        &manager, &ObjectManager::addBlock);
+    disk.start();
 
     app.exec();
 }

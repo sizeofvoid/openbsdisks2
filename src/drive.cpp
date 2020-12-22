@@ -102,19 +102,17 @@ bool Drive::removable() const
 
 QString Drive::connectionBus() const
 {
-    if (transport == CAM_TR_USB)
-        return QStringLiteral("usb");
-    else
-        return QString();
+    return QString();
 }
 
 bool Drive::bsdisks_IsHotpluggableR() const
 {
-    return transport == CAM_TR_USB;
+    return false;
 }
 
 QString Drive::bsdisks_ConnectionBusR() const
 {
+    /*
     switch (transport) {
     case CAM_TR_ATA:
         return QStringLiteral("ata");
@@ -123,6 +121,8 @@ QString Drive::bsdisks_ConnectionBusR() const
     default:
         return QString();
     }
+    */
+    return QString();
 }
 
 QString Drive::bsdisks_AtaSataR() const

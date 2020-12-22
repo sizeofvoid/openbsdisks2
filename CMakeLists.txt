@@ -37,20 +37,15 @@ set(SOURCE
     src/blockpartition.cpp
     src/blockparttable.cpp
     src/drive.cpp
-    src/filesystemprober.cpp
     src/manageradaptor.cpp
     src/objectmanager.cpp
 
-    # old from bsdisks, not supported now
-    #src/camcontrol.c
-    #src/zfsprober.cpp
-    #src/geomprober.cpp
-    #src/camcontrolprober.cpp
-    #src/devdthread.cpp
+    src/disk_thread.cpp
+    src/disk_label.cpp
 )
 add_executable(openbsdisks ${SOURCE})
 
-target_link_libraries(openbsdisks Qt5::DBus Qt5::Core)
+target_link_libraries(openbsdisks Qt5::DBus Qt5::Core util)
 
 target_compile_features(openbsdisks PRIVATE cxx_std_17)
 target_compile_options(openbsdisks PRIVATE "-Wall")
@@ -66,7 +61,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.freedesktop.UDisks2.service
     DESTINATION share/dbus-1/system-services
 )
 install(FILES org.freedesktop.UDisks2.conf
-    DESTINATION etc/dbus-1/system.d
+    DESTINATION /etc/dbus-1/system.d
 )
 
 install(FILES bsdisks.conf.sample

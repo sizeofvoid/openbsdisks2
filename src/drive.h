@@ -30,7 +30,6 @@
 #include <QObject>
 
 #include "adaptors.h"
-#include "camcontrolprober.h"
 
 class Drive : public QObject,
               public QDBusContext {
@@ -44,7 +43,6 @@ public:
     QString identifier;
     bool isRemovable;
     QString ataSata;
-    camtransport transport;
 
     bool camcontrolProbeDone;
     bool geomProbeDone;

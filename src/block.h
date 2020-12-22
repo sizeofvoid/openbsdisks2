@@ -54,13 +54,11 @@ public:
     QDBusObjectPath dbusPath;
     QStringList labels;
 
-#define FILESYSTEM_PROBE 0
-#define GEOM_PROBE 1
     std::bitset<2> probesDone;
 
     bool needsAnotherProbe;
 
-    bool registered;
+    bool registered = false;
 
     bool hasNoDrive;
 

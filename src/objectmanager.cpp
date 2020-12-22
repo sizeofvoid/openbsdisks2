@@ -3,12 +3,11 @@
 #include "block.h"
 #include "blockfilesystem.h"
 #include "bsdisks.h"
-#include "camcontrolprober.h"
 #include "drive.h"
-#include "filesystemprober.h"
 
 DBUSManagerStruct ObjectManager::GetManagedObjects()
 {
+    qDebug() << "GetManagedObjects";
     DBUSManagerStruct ret;
 
     QList<std::pair<QObject*, QDBusObjectPath>> objects;
@@ -51,11 +50,13 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
 
 void ObjectManager::initialProbe()
 {
+    qDebug() << "initialProbe";
     initialProbeDone = true;
 }
 
 void ObjectManager::filesystemAdded(Block* b, QString fs)
 {
+    qDebug() << "filesystemAdded";
     Q_ASSERT(b->bFilesystem == nullptr);
 
     auto bfs = new BlockFilesystem(b);
@@ -81,32 +82,42 @@ void ObjectManager::filesystemAdded(Block* b, QString fs)
     }
 }
 
-void ObjectManager::addBlock(QString dev)
+void ObjectManager::addBlock(TDiskLabel const& disklabel)
 {
-    if (auto* drive = m_driveObjects.value(dev)) {
-        if (drive->vendor() == "VBOX CD-ROM" && m_blockObjects.contains(dev))
-            return;
+    qDebug() << "addBlock";
+    for (QString const& p : disklabel->getDevicePartitions()) {
+        QString dev(disklabel->getDeviceName() + p);
+        if (!m_blockObjects.contains(dev)) {
+            if (auto* drive = m_driveObjects.value(dev)) {
+                if (drive->vendor() == "VBOX CD-ROM" && m_blockObjects.contains(dev))
+                    return;
+            }
+
+            qDebug() << "Created block " << dev;
+            auto* b = new Block;
+            m_blockObjects.insert(dev, b);
+
+            b->name = dev;
+            b->dbusPath = QDBusObjectPath(UDisksBlockDevices + dev);
+
+            //startFilesystemProbe(b);
+            qDebug() << "startFilesystemProbe";
+            //auto prober = new FilesystemProber(b->device());
+            filesystemAdded(b, QLatin1String("ffs"));
+            b->labels = QStringList() << dev;
+            registerBlock(b);
+        }
     }
-
-    Q_ASSERT(!m_blockObjects.contains(dev));
-
-    qDebug() << "Created block " << dev;
-    auto* b = new Block;
-    m_blockObjects.insert(dev, b);
-
-    b->name = dev;
-    b->dbusPath = QDBusObjectPath(UDisksBlockDevices + dev);
-
-    startFilesystemProbe(b);
 }
 
 void ObjectManager::updateBlock(QString dev)
 {
+    qDebug() << "updateBlock";
     auto* b = m_blockObjects.value(dev);
 
     if (b->probesDone.all()) {
         b->probesDone.reset();
-        b->probesDone.set(FILESYSTEM_PROBE);
+        //b->probesDone.set(FILESYSTEM_PROBE);
     }
     else
         b->needsAnotherProbe = true;
@@ -114,6 +125,7 @@ void ObjectManager::updateBlock(QString dev)
 
 void ObjectManager::removeBlock(QString dev)
 {
+    qDebug() << "removeBlock";
     if (auto* drive = m_driveObjects.value(dev)) {
         if (drive->vendor() == "VBOX CD-ROM")
             return;
@@ -150,8 +162,9 @@ void ObjectManager::removeBlock(QString dev)
     delete b;
 }
 
-void ObjectManager::addDrive(QString dev)
+void ObjectManager::addDrive(TDiskLabel const& dl)
 {
+    /*
     Q_ASSERT(!m_driveObjects.contains(dev));
 
     qDebug() << "Created drive " << dev;
@@ -159,12 +172,15 @@ void ObjectManager::addDrive(QString dev)
     m_driveObjects.insert(dev, d);
 
     QString devPath = UDisksDrives + dev;
+    qDebug() << "Created drive 2" << devPath;
     d->dbusPath = QDBusObjectPath(devPath);
     d->geomName = dev;
+    */
 }
 
 void ObjectManager::removeDrive(QString dev)
 {
+    qDebug() << "removeDrive";
     Q_ASSERT(m_driveObjects.contains(dev));
 
     auto* d = m_driveObjects.take(dev);
@@ -176,11 +192,13 @@ void ObjectManager::removeDrive(QString dev)
 
 void ObjectManager::postponeRegistration(QString blockName)
 {
+    qDebug() << "postponeRegistration";
     m_postponedRegistrations.insert(blockName);
 }
 
 void ObjectManager::tryRegisterPostponed()
 {
+    qDebug() << "tryRegisterPostponed";
     int postponedSize;
     do {
         postponedSize = m_postponedRegistrations.size();
@@ -197,12 +215,13 @@ void ObjectManager::tryRegisterPostponed()
 
 bool ObjectManager::registerBlock(Block* b, bool tryPostponed)
 {
+    qDebug() << "registerBlock";
     // We've got MEDIACHANGE event while probes were running.
     // Re-start GEOM probe and postpone registration.
     if (b->needsAnotherProbe) {
         qDebug() << b->name << " changed, restarting probes ";
         b->needsAnotherProbe = false;
-        b->probesDone.reset(GEOM_PROBE);
+        //b->probesDone.reset(GEOM_PROBE);
         return false;
     }
 
@@ -262,6 +281,7 @@ bool ObjectManager::registerBlock(Block* b, bool tryPostponed)
 
 void ObjectManager::registerDrive(Drive* d)
 {
+    qDebug() << "registerDrive";
     const QString dbusPath = d->dbusPath.path();
 
     qDebug() << "Registering " + dbusPath;
@@ -274,32 +294,20 @@ void ObjectManager::registerDrive(Drive* d)
 
 void ObjectManager::startFilesystemProbe(Block* b)
 {
-    auto prober = new FilesystemProber(b->device());
+    qDebug() << "startFilesystemProbe";
     const QString devName = b->name;
-
-    QObject::connect(prober, &FilesystemProber::finished, this,
-        [this, devName](QString fs) {
-            Block* b = m_blockObjects.value(devName);
-            if (!b)
-                return;
-
-            qDebug() << "Finished FS probe on " << b->name;
-            if (!fs.isEmpty())
-                filesystemAdded(b, fs);
-
-            b->probesDone.set(FILESYSTEM_PROBE);
-            if (b->probesDone.all())
-                registerBlock(b);
-        });
-
-    QThreadPool::globalInstance()->start(prober);
+    filesystemAdded(b, QLatin1String("ffs"));
+    b->labels = QStringList() << devName;
+    registerBlock(b);
 }
 
 void ObjectManager::addPartition(Block* b, const QString& tableBlockName)
 {
+    qDebug() << "addPartition";
     auto* bp = new BlockPartition(b);
 
     bp->partBlockName = tableBlockName;
+    bp->size = 133333;
     /*
     bp->partitionType = partInfo.type();
     bp->number = partInfo.index();
@@ -312,6 +320,7 @@ void ObjectManager::addPartition(Block* b, const QString& tableBlockName)
 
 void ObjectManager::addInterfaces(QDBusObjectPath path, QList<std::pair<QString, QDBusAbstractAdaptor*>> newInterfaces)
 {
+    qDebug() << "addInterfaces";
     QVariantMapMap interfaces;
 
     for (auto pair : newInterfaces) {
@@ -333,5 +342,6 @@ void ObjectManager::addInterfaces(QDBusObjectPath path, QList<std::pair<QString,
 
 void ObjectManager::removeInterfaces(QDBusObjectPath path, QStringList ifaces)
 {
+    qDebug() << "removeInterfaces";
     emit InterfacesRemoved(path, ifaces);
 }

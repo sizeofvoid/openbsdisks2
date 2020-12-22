@@ -28,6 +28,7 @@
 
 #include <QHash>
 
+#include "disk_label.h"
 #include "manageradaptor.h"
 
 class Block;
@@ -40,11 +41,11 @@ public slots:
 
     void filesystemAdded(Block* b, QString fs);
 
-    void addBlock(QString dev);
+    void addBlock(TDiskLabel const&);
     void updateBlock(QString dev);
     void removeBlock(QString dev);
 
-    void addDrive(QString dev);
+    void addDrive(TDiskLabel const&);
     void removeDrive(QString dev);
 
     void initialProbe();
