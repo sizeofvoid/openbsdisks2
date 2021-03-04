@@ -31,6 +31,7 @@ public:
 signals:
     void deviceAdded(TDiskLabel const&);
     void blockAdded(TDiskLabel const&);
+    void blockRemoved(TDiskLabel const&);
 
 private slots:
     void check();
@@ -39,7 +40,7 @@ private:
     QString readDisknames() const;
     void addNewDevices(const QString&);
     void removeDevices(const QString&);
-    std::vector<std::pair<QString,QString>> getCurrentDev(const QString&);
+    std::vector<std::pair<QString, QString>> getCurrentDev(const QString&);
 
     QTimer* m_t;
     TDiskLabelVec diskLabels;

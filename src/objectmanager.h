@@ -43,10 +43,10 @@ public slots:
 
     void addBlock(TDiskLabel const&);
     void updateBlock(QString dev);
-    void removeBlock(QString dev);
+    void removeBlock(TDiskLabel const&);
 
     void addDrive(TDiskLabel const&);
-    void removeDrive(QString dev);
+    void removeDrive(TDiskLabel const&);
 
     void initialProbe();
 signals:

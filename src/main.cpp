@@ -143,6 +143,10 @@ int main(int argc, char** argv)
         &manager, &ObjectManager::addDrive);
     QObject::connect(&disk, &DiskThread::blockAdded,
         &manager, &ObjectManager::addBlock);
+
+    QObject::connect(&disk, &DiskThread::blockRemoved,
+        &manager, &ObjectManager::removeBlock);
+
     disk.start();
 
     app.exec();

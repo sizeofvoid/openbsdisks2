@@ -84,6 +84,9 @@ void ObjectManager::filesystemAdded(Block* b, QString fs)
 
 void ObjectManager::addBlock(TDiskLabel const& disklabel)
 {
+    if (!disklabel->isValid())
+        return;
+
     qDebug() << "addBlock";
     for (QString const& p : disklabel->getDevicePartitions()) {
         QString dev(disklabel->getDeviceName() + p);
@@ -123,49 +126,60 @@ void ObjectManager::updateBlock(QString dev)
         b->needsAnotherProbe = true;
 }
 
-void ObjectManager::removeBlock(QString dev)
+void ObjectManager::removeBlock(TDiskLabel const& disklabel)
 {
-    qDebug() << "removeBlock";
-    if (auto* drive = m_driveObjects.value(dev)) {
-        if (drive->vendor() == "VBOX CD-ROM")
-            return;
-    }
-
-    // happens with partitions blocks - we delete them along with table block,
-    // but the devd event may arrive after that
-    if (!m_blockObjects.contains(dev))
+    if (!disklabel->isValid())
         return;
 
-    auto* b = m_blockObjects.take(dev);
-    auto* d = m_driveObjects.value(b->driveName());
-    qDebug() << "Unregistering " + b->dbusPath.path();
-    QStringList ifaces;
+    for (QString const& p : disklabel->getDevicePartitions()) {
 
-    if (b->bFilesystem)
-        ifaces << QStringLiteral("org.freedesktop.UDisks2.Filesystem");
-    if (b->bPartition)
-        ifaces << QStringLiteral("org.freedesktop.UDisks2.Partition");
-    if (b->bPartTable) {
-        ifaces << QStringLiteral("org.freedesktop.UDisks2.PartitionTable");
-        for (auto pb : b->bPartTable->partitionBlockNames)
-            removeBlock(pb);
+        QString dev(disklabel->getDeviceName() + p);
+        qDebug() << "removeBlock dev: " << dev;
+
+        if (m_blockObjects.contains(dev)) {
+            if (auto* drive = m_driveObjects.value(dev)) {
+                if (drive->vendor() == "VBOX CD-ROM" && m_blockObjects.contains(dev))
+                    return;
+            }
+
+            auto* b = m_blockObjects.take(dev);
+            qDebug() << "Unregistering " + b->dbusPath.path();
+            QStringList ifaces;
+
+            if (b->bFilesystem)
+                ifaces << QStringLiteral("org.freedesktop.UDisks2.Filesystem");
+            if (b->bPartition)
+                ifaces << QStringLiteral("org.freedesktop.UDisks2.Partition");
+            /*
+            if (b->bPartTable) {
+                ifaces << QStringLiteral("org.freedesktop.UDisks2.PartitionTable");
+                for (auto pb : b->bPartTable->partitionBlockNames)
+                    removeBlock(pb);
+            }
+            */
+            ifaces << QStringLiteral("org.freedesktop.UDisks2.Block");
+            removeInterfaces(b->dbusPath, ifaces);
+            QDBusConnection::systemBus().unregisterObject(b->dbusPath.path());
+
+            if (!b->hasNoDrive)
+                // delete drive only when we are deleting table block or any
+                // other non-partition block
+                if (!b->bPartition)
+                    removeDrive(disklabel);
+
+            delete b;
+        }
     }
-    ifaces << QStringLiteral("org.freedesktop.UDisks2.Block");
-    removeInterfaces(b->dbusPath, ifaces);
-    QDBusConnection::systemBus().unregisterObject(b->dbusPath.path());
-
-    if (!b->hasNoDrive)
-        // delete drive only when we are deleting table block or any other non-partition block
-        if (!b->bPartition)
-            removeDrive(d->geomName);
-
-    delete b;
 }
 
-void ObjectManager::addDrive(TDiskLabel const& dl)
+void ObjectManager::addDrive(TDiskLabel const& disklabel)
 {
-    /*
-    Q_ASSERT(!m_driveObjects.contains(dev));
+    //return; // XXX TODO impl.
+    //Q_ASSERT(!m_driveObjects.contains(dev));
+    if (!disklabel->isValid())
+        return;
+
+    QString dev(disklabel->getDeviceName());
 
     qDebug() << "Created drive " << dev;
     auto* d = new Drive;
@@ -175,13 +189,13 @@ void ObjectManager::addDrive(TDiskLabel const& dl)
     qDebug() << "Created drive 2" << devPath;
     d->dbusPath = QDBusObjectPath(devPath);
     d->geomName = dev;
-    */
+    registerDrive(d);
 }
 
-void ObjectManager::removeDrive(QString dev)
+void ObjectManager::removeDrive(TDiskLabel const& disklabel)
 {
-    qDebug() << "removeDrive";
-    Q_ASSERT(m_driveObjects.contains(dev));
+    QString dev(disklabel->getDeviceName());
+    qDebug() << "removeDrive " << dev;
 
     auto* d = m_driveObjects.take(dev);
     qDebug() << "Unregistering " + d->dbusPath.path();
@@ -203,10 +217,11 @@ void ObjectManager::tryRegisterPostponed()
     do {
         postponedSize = m_postponedRegistrations.size();
 
-        for (auto it = m_postponedRegistrations.begin(); it != m_postponedRegistrations.end(); it++) {
-            if (registerBlock(m_blockObjects[*it], false)) {
-                qDebug() << "Pop " << *it << " from m_postponedRegistrations";
-                m_postponedRegistrations.erase(it);
+        for (const QString& postponed : m_postponedRegistrations)
+        {
+            if (registerBlock(m_blockObjects[postponed], false)) {
+                qDebug() << "Pop " << postponed << " from m_postponedRegistrations";
+               // XXX m_postponedRegistrations.erase(it);
                 break;
             }
         }
@@ -325,6 +340,7 @@ void ObjectManager::addInterfaces(QDBusObjectPath path, QList<std::pair<QString,
 
     for (auto pair : newInterfaces) {
         const QString& iface = pair.first;
+        qDebug() << "addInterface: " << iface;
         QDBusAbstractAdaptor* adaptor = pair.second;
 
         QVariantMap properties;

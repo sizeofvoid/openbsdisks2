@@ -91,10 +91,12 @@ void DiskThread::check()
                         }))
         {
             toDelete.push_back(distlable->getDeviceName());
+            emit blockRemoved(distlable);
         }
     }
-    for (auto const& del: toDelete)
+    for (auto const& del: toDelete) {
         removeDevices(del);
+    }
 
 }
 
