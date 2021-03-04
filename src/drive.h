@@ -1,5 +1,6 @@
 /*
     Copyright 2016-2019 Gleb Popov <6yearold@gmail.com>
+    Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:

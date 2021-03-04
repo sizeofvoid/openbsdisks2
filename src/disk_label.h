@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Rafael Sadowski <rafael@sizeofvoid.org>
+ * Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
