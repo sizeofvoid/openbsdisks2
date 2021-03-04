@@ -10,51 +10,37 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
     qDebug() << "GetManagedObjects";
     DBUSManagerStruct ret;
 
-    QList<std::pair<QObject*, QDBusObjectPath>> objects;
-
-    std::transform(m_driveObjects.begin(), m_driveObjects.end(), std::back_inserter(objects),
-        [](Drive* d) { return std::make_pair(static_cast<QObject*>(d), d->dbusPath); });
-
-    std::transform(m_blockObjects.begin(), m_blockObjects.end(), std::back_inserter(objects),
-        [](Block* b) { return std::make_pair(static_cast<QObject*>(b), b->dbusPath); });
-
-    for (auto& objectPair : objects) {
-        QObject* o = objectPair.first;
-        auto dbusPath = objectPair.second;
-
+    auto addDBUSManagerStruct  = [&](QObject* o, const QDBusObjectPath& dbusPath) {
         QVariantMapMap interfaces;
 
         for (QObject* child : o->children()) {
-            QDBusAbstractAdaptor* adaptor = qobject_cast<QDBusAbstractAdaptor*>(child);
 
-            if (!adaptor)
-                continue;
+            if (QDBusAbstractAdaptor* adaptor = qobject_cast<QDBusAbstractAdaptor*>(child)) {
+                const QString& iface = adaptor->metaObject()->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface")).value();
 
-            const QString& iface = adaptor->metaObject()->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface")).value();
+                QVariantMap properties;
+                for (int i = adaptor->metaObject()->propertyOffset();
+                    i < adaptor->metaObject()->propertyCount(); ++i) {
+                    auto propertyName = adaptor->metaObject()->property(i).name();
+                    properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
+                }
 
-            QVariantMap properties;
-            for (int i = adaptor->metaObject()->propertyOffset();
-                 i < adaptor->metaObject()->propertyCount(); ++i) {
-                auto propertyName = adaptor->metaObject()->property(i).name();
-                properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
+                interfaces[iface] = properties;
             }
-
-            interfaces[iface] = properties;
         }
-
         ret[dbusPath] = interfaces;
-    }
+    };
+
+    for (Drive* d : m_driveObjects)
+        addDBUSManagerStruct(d, d->dbusPath);
+
+    for (Block* b : m_blockObjects)
+        addDBUSManagerStruct(b, b->dbusPath);
 
     return ret;
 }
 
-void ObjectManager::initialProbe()
-{
-    qDebug() << "initialProbe";
-    initialProbeDone = true;
-}
-
-void ObjectManager::filesystemAdded(Block* b, QString fs)
+void ObjectManager::filesystemAdded(Block* b, const QString& fs)
 {
     qDebug() << "filesystemAdded";
     Q_ASSERT(b->bFilesystem == nullptr);
@@ -176,7 +162,6 @@ void ObjectManager::removeBlock(TDiskLabel const& disklabel)
 
 void ObjectManager::addDrive(TDiskLabel const& disklabel)
 {
-    //return; // XXX TODO impl.
     //Q_ASSERT(!m_driveObjects.contains(dev));
     if (!disklabel->isValid())
         return;
@@ -206,7 +191,7 @@ void ObjectManager::removeDrive(TDiskLabel const& disklabel)
     delete d;
 }
 
-void ObjectManager::postponeRegistration(QString blockName)
+void ObjectManager::postponeRegistration(const QString& blockName)
 {
     qDebug() << "postponeRegistration";
     m_postponedRegistrations.insert(blockName);
@@ -335,7 +320,7 @@ void ObjectManager::addPartition(Block* b, const QString& tableBlockName)
     b->bPartition = bp;
 }
 
-void ObjectManager::addInterfaces(QDBusObjectPath path, QList<std::pair<QString, QDBusAbstractAdaptor*>> newInterfaces)
+void ObjectManager::addInterfaces(const QDBusObjectPath& path, const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
 {
     qDebug() << "addInterfaces";
     QVariantMapMap interfaces;
@@ -358,7 +343,7 @@ void ObjectManager::addInterfaces(QDBusObjectPath path, QList<std::pair<QString,
     emit InterfacesAdded(path, interfaces);
 }
 
-void ObjectManager::removeInterfaces(QDBusObjectPath path, QStringList ifaces)
+void ObjectManager::removeInterfaces(const QDBusObjectPath& path, const QStringList& ifaces)
 {
     qDebug() << "removeInterfaces";
     emit InterfacesRemoved(path, ifaces);

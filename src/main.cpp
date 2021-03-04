@@ -134,8 +134,6 @@ int main(int argc, char** argv)
     QThreadPool::globalInstance()->setExpiryTimeout(-1);
     QThreadPool::globalInstance()->setMaxThreadCount(4);
 
-    manager.initialProbe();
-
     QDBusConnection::systemBus().registerObject(
         "/org/freedesktop/UDisks2", &manager);
 

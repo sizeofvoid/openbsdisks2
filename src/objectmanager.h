@@ -40,32 +40,31 @@ class ObjectManager : public QObject {
 public slots:
     DBUSManagerStruct GetManagedObjects();
 
-    void filesystemAdded(Block* b, QString fs);
+    void filesystemAdded(Block*, const QString&);
 
-    void addBlock(TDiskLabel const&);
-    void updateBlock(TDiskLabel const&);
-    void removeBlock(TDiskLabel const&);
+    void addBlock(const TDiskLabel&);
+    void updateBlock(const TDiskLabel&);
+    void removeBlock(const TDiskLabel&);
 
-    void addDrive(TDiskLabel const&);
-    void removeDrive(TDiskLabel const&);
+    void addDrive(const TDiskLabel&);
+    void removeDrive(const TDiskLabel&);
 
-    void initialProbe();
 signals:
-    void InterfacesAdded(const QDBusObjectPath& object_path, const QVariantMapMap& interfaces_and_properties);
-    void InterfacesRemoved(const QDBusObjectPath& object_path, const QStringList& interfaces);
+    void InterfacesAdded(const QDBusObjectPath& , const QVariantMapMap&);
+    void InterfacesRemoved(const QDBusObjectPath&, const QStringList&);
 
 private:
-    void startFilesystemProbe(Block* b);
+    void startFilesystemProbe(Block*);
 
-    void registerDrive(Drive* d);
-    bool registerBlock(Block* d, bool tryPostponed = true);
-    void postponeRegistration(QString blockName);
+    void registerDrive(Drive*);
+    bool registerBlock(Block*, bool = true);
+    void postponeRegistration(const QString&);
     void tryRegisterPostponed();
 
-    void addPartition(Block* b, const QString& tableBlockName);
+    void addPartition(Block*, const QString&);
 
-    void addInterfaces(QDBusObjectPath path, QList<std::pair<QString, QDBusAbstractAdaptor*>> newInterfaces);
-    void removeInterfaces(QDBusObjectPath path, QStringList ifaces);
+    void addInterfaces(const QDBusObjectPath&, const QList<std::pair<QString, QDBusAbstractAdaptor*>>&);
+    void removeInterfaces(const QDBusObjectPath&, const QStringList&);
 
     bool initialProbeDone;
     QHash<QString, Block*> m_blockObjects;
