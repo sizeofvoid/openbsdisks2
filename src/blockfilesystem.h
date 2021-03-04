@@ -49,3 +49,6 @@ private:
 
     Block* parentBlock();
 };
+
+using TBlockFilesystem = std::shared_ptr<BlockFilesystem>;
+using TBlockFilesystemVec = std::vector<TBlockFilesystem>;

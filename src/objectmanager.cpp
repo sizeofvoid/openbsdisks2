@@ -113,9 +113,10 @@ void ObjectManager::addBlock(TDiskLabel const& disklabel)
     }
 }
 
-void ObjectManager::updateBlock(QString dev)
+void ObjectManager::updateBlock(TDiskLabel const& disklabel)
 {
     qDebug() << "updateBlock";
+    /*
     auto* b = m_blockObjects.value(dev);
 
     if (b->probesDone.all()) {
@@ -124,6 +125,7 @@ void ObjectManager::updateBlock(QString dev)
     }
     else
         b->needsAnotherProbe = true;
+    */
 }
 
 void ObjectManager::removeBlock(TDiskLabel const& disklabel)

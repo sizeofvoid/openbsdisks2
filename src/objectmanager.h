@@ -43,7 +43,7 @@ public slots:
     void filesystemAdded(Block* b, QString fs);
 
     void addBlock(TDiskLabel const&);
-    void updateBlock(QString dev);
+    void updateBlock(TDiskLabel const&);
     void removeBlock(TDiskLabel const&);
 
     void addDrive(TDiskLabel const&);

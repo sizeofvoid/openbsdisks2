@@ -42,3 +42,6 @@ public:
 private:
     QString m_tableType;
 };
+
+using TBlockPartTable = std::shared_ptr<BlockPartTable>;
+using TBlockPartTableVec = std::vector<TBlockPartTable>;

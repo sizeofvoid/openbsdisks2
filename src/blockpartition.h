@@ -43,3 +43,6 @@ public:
 
     Block* partTableBlock;
 };
+
+using TBlockPartition = std::shared_ptr<BlockPartition>;
+using TBlockPartitionVec = std::vector<TBlockPartition>;

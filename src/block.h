@@ -171,3 +171,6 @@ public slots:
         return bFilesystem->Unmount(options);
     }
 };
+
+using TBlock = std::shared_ptr<Block>;
+using TBlockVec = std::vector<TBlock>;
