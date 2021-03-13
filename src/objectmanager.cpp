@@ -10,7 +10,7 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
     qDebug() << "GetManagedObjects";
     DBUSManagerStruct ret;
 
-    auto addDBUSManagerStruct  = [&](QObject* o, const QDBusObjectPath& dbusPath) {
+    auto addDBUSManagerStruct = [&](QObject* o, const QDBusObjectPath& dbusPath) {
         QVariantMapMap interfaces;
 
         for (QObject* child : o->children()) {
@@ -20,7 +20,7 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
 
                 QVariantMap properties;
                 for (int i = adaptor->metaObject()->propertyOffset();
-                    i < adaptor->metaObject()->propertyCount(); ++i) {
+                     i < adaptor->metaObject()->propertyCount(); ++i) {
                     auto propertyName = adaptor->metaObject()->property(i).name();
                     properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
                 }
@@ -31,77 +31,28 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
         ret[dbusPath] = interfaces;
     };
 
-    for (Drive* d : m_driveObjects)
-        addDBUSManagerStruct(d, d->dbusPath);
+    for (const auto& d : m_driveObjects)
+        addDBUSManagerStruct(d.get(), d->getDbusPath());
 
-    for (Block* b : m_blockObjects)
-        addDBUSManagerStruct(b, b->dbusPath);
+    for (const auto& b : m_blockObjects)
+        addDBUSManagerStruct(b.get(), b->getDbusPath());
 
     return ret;
 }
 
-void ObjectManager::filesystemAdded(Block* b, const QString& fs)
+void ObjectManager::addBlock(TBlock const& block)
 {
-    qDebug() << "filesystemAdded";
-    Q_ASSERT(b->bFilesystem == nullptr);
-
-    auto bfs = new BlockFilesystem(b);
-    bfs->filesystem = fs;
-
-    b->bFilesystem = bfs;
-    b->idUsage = QStringLiteral("filesystem");
-
-    if (fs == QStringLiteral("msdosfs")) {
-        b->idType = QStringLiteral("vfat");
-    }
-    else {
-        b->idType = fs;
-    }
-
-    for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
-        if (storage.isValid() && storage.isReady()) {
-            if (!storage.device().compare(b->device().chopped(1))) {
-                bfs->mountPoints << storage.rootPath().toLocal8Bit();
-                break;
-            }
-        }
-    }
-}
-
-void ObjectManager::addBlock(TDiskLabel const& disklabel)
-{
-    if (!disklabel->isValid())
+    if (!block)
         return;
 
-    qDebug() << "addBlock";
-    for (QString const& p : disklabel->getDevicePartitions()) {
-        QString dev(disklabel->getDeviceName() + p);
-        if (!m_blockObjects.contains(dev)) {
-            if (auto* drive = m_driveObjects.value(dev)) {
-                if (drive->vendor() == "VBOX CD-ROM" && m_blockObjects.contains(dev))
-                    return;
-            }
-
-            qDebug() << "Created block " << dev;
-            auto* b = new Block;
-            m_blockObjects.insert(dev, b);
-
-            b->name = dev;
-            b->dbusPath = QDBusObjectPath(UDisksBlockDevices + dev);
-
-            //startFilesystemProbe(b);
-            qDebug() << "startFilesystemProbe";
-            //auto prober = new FilesystemProber(b->device());
-            filesystemAdded(b, QLatin1String("ffs"));
-            b->labels = QStringList() << dev;
-            registerBlock(b);
-        }
-    }
+    qDebug() << "Add Block";
+    m_blockObjects.insert(block->getName(), block);
+    registerBlock(block);
 }
 
-void ObjectManager::updateBlock(TDiskLabel const& disklabel)
+void ObjectManager::updateBlock(TBlock const& block)
 {
-    qDebug() << "updateBlock";
+    qDebug() << "UpdateBlock";
     /*
     auto* b = m_blockObjects.value(dev);
 
@@ -114,220 +65,97 @@ void ObjectManager::updateBlock(TDiskLabel const& disklabel)
     */
 }
 
-void ObjectManager::removeBlock(TDiskLabel const& disklabel)
+void ObjectManager::removeBlock(TBlock const& block)
 {
-    if (!disklabel->isValid())
+    qInfo() << "Unregistering Block " + block->getDbusPath().path();
+
+    QStringList ifaces;
+    ifaces << QStringLiteral("org.freedesktop.UDisks2.Block");
+
+    if (block->getPartition() && block->getPartition()->getFilesystem())
+        ifaces << QStringLiteral("org.freedesktop.UDisks2.Filesystem");
+    /*
+    if (block->getPartition())
+        ifaces << QStringLiteral("org.freedesktop.UDisks2.Partition");
+    */
+
+    ifaces << QStringLiteral("org.freedesktop.UDisks2.Block");
+    removeInterfaces(block->getDbusPath(), ifaces);
+    QDBusConnection::systemBus().unregisterObject(block->getDbusPath().path());
+}
+
+void ObjectManager::addDrive(TDrive drive)
+{
+    if (!drive)
         return;
 
-    for (QString const& p : disklabel->getDevicePartitions()) {
-
-        QString dev(disklabel->getDeviceName() + p);
-        qDebug() << "removeBlock dev: " << dev;
-
-        if (m_blockObjects.contains(dev)) {
-            if (auto* drive = m_driveObjects.value(dev)) {
-                if (drive->vendor() == "VBOX CD-ROM" && m_blockObjects.contains(dev))
-                    return;
-            }
-
-            auto* b = m_blockObjects.take(dev);
-            qDebug() << "Unregistering " + b->dbusPath.path();
-            QStringList ifaces;
-
-            if (b->bFilesystem)
-                ifaces << QStringLiteral("org.freedesktop.UDisks2.Filesystem");
-            if (b->bPartition)
-                ifaces << QStringLiteral("org.freedesktop.UDisks2.Partition");
-            /*
-            if (b->bPartTable) {
-                ifaces << QStringLiteral("org.freedesktop.UDisks2.PartitionTable");
-                for (auto pb : b->bPartTable->partitionBlockNames)
-                    removeBlock(pb);
-            }
-            */
-            ifaces << QStringLiteral("org.freedesktop.UDisks2.Block");
-            removeInterfaces(b->dbusPath, ifaces);
-            QDBusConnection::systemBus().unregisterObject(b->dbusPath.path());
-
-            if (!b->hasNoDrive)
-                // delete drive only when we are deleting table block or any
-                // other non-partition block
-                if (!b->bPartition)
-                    removeDrive(disklabel);
-
-            delete b;
-        }
-    }
+    m_driveObjects.insert(drive->getDeviceName(), drive);
+    registerDrive(drive);
 }
 
-void ObjectManager::addDrive(TDiskLabel const& disklabel)
+void ObjectManager::removeDrive(TDrive const& drive)
 {
-    //Q_ASSERT(!m_driveObjects.contains(dev));
-    if (!disklabel->isValid())
-        return;
+    qDebug() << "Unregistering " + drive->getDbusPath().path();
+    for (const TBlock& block : drive->getBlocks())
+        removeBlock(block);
 
-    QString dev(disklabel->getDeviceName());
-
-    qDebug() << "Created drive " << dev;
-    auto* d = new Drive;
-    m_driveObjects.insert(dev, d);
-
-    QString devPath = UDisksDrives + dev;
-    qDebug() << "Created drive 2" << devPath;
-    d->dbusPath = QDBusObjectPath(devPath);
-    d->geomName = dev;
-    registerDrive(d);
+    removeInterfaces(drive->getDbusPath(), {QStringLiteral("org.freedesktop.UDisks2.Drive")});
+    QDBusConnection::systemBus().unregisterObject(drive->getDbusPath().path());
 }
 
-void ObjectManager::removeDrive(TDiskLabel const& disklabel)
+bool ObjectManager::registerBlock(const TBlock& block, bool tryPostponed)
 {
-    QString dev(disklabel->getDeviceName());
-    qDebug() << "removeDrive " << dev;
+    qDebug() << "RegisterBlock blockObjects :" << m_blockObjects.size();
 
-    auto* d = m_driveObjects.take(dev);
-    qDebug() << "Unregistering " + d->dbusPath.path();
-    removeInterfaces(d->dbusPath, {QStringLiteral("org.freedesktop.UDisks2.Drive")});
-    QDBusConnection::systemBus().unregisterObject(d->dbusPath.path());
-    delete d;
-}
+    if (!block->registered) {
+        block->registered = true;
 
-void ObjectManager::postponeRegistration(const QString& blockName)
-{
-    qDebug() << "postponeRegistration";
-    m_postponedRegistrations.insert(blockName);
-}
-
-void ObjectManager::tryRegisterPostponed()
-{
-    qDebug() << "tryRegisterPostponed";
-    int postponedSize;
-    do {
-        postponedSize = m_postponedRegistrations.size();
-
-        for (const QString& postponed : m_postponedRegistrations)
-        {
-            if (registerBlock(m_blockObjects[postponed], false)) {
-                qDebug() << "Pop " << postponed << " from m_postponedRegistrations";
-               // XXX m_postponedRegistrations.erase(it);
-                break;
-            }
-        }
-    } while (postponedSize > m_postponedRegistrations.size());
-}
-
-bool ObjectManager::registerBlock(Block* b, bool tryPostponed)
-{
-    qDebug() << "registerBlock";
-    // We've got MEDIACHANGE event while probes were running.
-    // Re-start GEOM probe and postpone registration.
-    if (b->needsAnotherProbe) {
-        qDebug() << b->name << " changed, restarting probes ";
-        b->needsAnotherProbe = false;
-        //b->probesDone.reset(GEOM_PROBE);
-        return false;
-    }
-
-    if (tryPostponed)
-        tryRegisterPostponed();
-
-    if (b->bPartition) {
-        Block* table = m_blockObjects.value(b->bPartition->partBlockName, nullptr);
-        if (!table || !table->registered) {
-            qDebug() << b->name << " waits for partition table " << (table ? table->name : QString());
-            postponeRegistration(b->name);
-            return false;
-        }
-        if (!b->bPartition->partTableBlock)
-            b->bPartition->partTableBlock = table;
-    }
-
-    if (!b->hasNoDrive)
-        if (Drive* d = m_driveObjects.value(b->driveName(), nullptr)) {
-            if (!d || !(d->camcontrolProbeDone && d->geomProbeDone)) {
-                qDebug() << b->name << " waits for drive " << b->driveName();
-                postponeRegistration(b->name);
-                return false;
-            }
-        }
-
-    if (!b->registered) {
-        b->registered = true;
-
-        QString devPath = b->dbusPath.path();
-
-        qDebug() << "Registering " + devPath;
-        QDBusConnection::systemBus().registerObject(devPath, b);
+        QString devPath = block->getDbusPath().path();
 
         QList<std::pair<QString, QDBusAbstractAdaptor*>> interfaces;
-        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"), new BlockAdaptor(b));
+        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"),
+            new BlockAdaptor(block.get()));
 
-        if (b->bFilesystem)
-            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Filesystem"), new FilesystemAdaptor(b));
+        if (block->getPartition() && block->getPartition()->getFilesystem())
+            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Filesystem"),
+                new FilesystemAdaptor(block.get()));
 
-        if (b->bPartTable)
-            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.PartitionTable"), new PartitionTableAdaptor(b));
+        /*
+        if (block->getPartitionTable())
+            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.PartitionTable"),
+                                         new PartitionTableAdaptor(block.get()));
 
-        if (b->bPartition)
-            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Partition"), new PartitionAdaptor(b));
+        if (block->getPartition())
+            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Partition"),
+                                         new PartitionAdaptor(block.get()));
+         */
 
-        addInterfaces(b->dbusPath, interfaces);
+        addInterfaces(block->getDbusPath(), interfaces);
+        qInfo() << "Registering: " + devPath;
+        QDBusConnection::systemBus().registerObject(devPath, block.get());
     }
-    else {
-    } // we were updating things after updateBlock()
-
-    if (tryPostponed)
-        tryRegisterPostponed();
-
     return true;
 }
 
-void ObjectManager::registerDrive(Drive* d)
+void ObjectManager::registerDrive(const TDrive& drive)
 {
-    qDebug() << "registerDrive";
-    const QString dbusPath = d->dbusPath.path();
-
+    const QString dbusPath = drive->getDbusPath().path();
     qDebug() << "Registering " + dbusPath;
-    QDBusConnection::systemBus().registerObject(dbusPath, d);
 
-    addInterfaces(d->dbusPath, {std::make_pair("org.freedesktop.UDisks2.Drive", new DriveAdaptor(d))});
+    QDBusConnection::systemBus().registerObject(dbusPath, drive.get());
 
-    tryRegisterPostponed();
+    addInterfaces(drive->getDbusPath(), {std::make_pair("org.freedesktop.UDisks2.Drive", new DriveAdaptor(drive.get()))});
 }
 
-void ObjectManager::startFilesystemProbe(Block* b)
+void ObjectManager::addInterfaces(const QDBusObjectPath& path,
+    const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
 {
-    qDebug() << "startFilesystemProbe";
-    const QString devName = b->name;
-    filesystemAdded(b, QLatin1String("ffs"));
-    b->labels = QStringList() << devName;
-    registerBlock(b);
-}
-
-void ObjectManager::addPartition(Block* b, const QString& tableBlockName)
-{
-    qDebug() << "addPartition";
-    auto* bp = new BlockPartition(b);
-
-    bp->partBlockName = tableBlockName;
-    bp->size = 133333;
-    /*
-    bp->partitionType = partInfo.type();
-    bp->number = partInfo.index();
-    bp->offset = partInfo.offset();
-    bp->size = partInfo.length();
-    */
-
-    b->bPartition = bp;
-}
-
-void ObjectManager::addInterfaces(const QDBusObjectPath& path, const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
-{
-    qDebug() << "addInterfaces";
+    qDebug() << "Add Interfaces";
     QVariantMapMap interfaces;
 
     for (auto pair : newInterfaces) {
         const QString& iface = pair.first;
-        qDebug() << "addInterface: " << iface;
+        qDebug() << "Add Interface: " << iface;
         QDBusAbstractAdaptor* adaptor = pair.second;
 
         QVariantMap properties;
@@ -339,12 +167,11 @@ void ObjectManager::addInterfaces(const QDBusObjectPath& path, const QList<std::
 
         interfaces[iface] = properties;
     }
-
     emit InterfacesAdded(path, interfaces);
 }
 
 void ObjectManager::removeInterfaces(const QDBusObjectPath& path, const QStringList& ifaces)
 {
-    qDebug() << "removeInterfaces";
+    qDebug() << "Remove Interfaces: " << path.path();
     emit InterfacesRemoved(path, ifaces);
 }

@@ -26,22 +26,26 @@
 
 #pragma once
 
-#include <QObject>
+#include "blockfilesystem.h"
 
-class Block;
-class BlockPartition : public QObject {
-    Q_OBJECT
+class BlockPartition {
 public:
-    BlockPartition(Block* parent);
+    BlockPartition() = default;
+
+    void addFilesystem(const TBlockFilesystem&);
+    TBlockFilesystem getFilesystem() const;
 
     QString name() const;
+    // XXX
     QString partitionType;
     QString partBlockName;
     uint number;
     qulonglong offset;
     qulonglong size;
 
-    Block* partTableBlock;
+private:
+    // org.freedesktop.UDisks2.Filesystem — Block device containing a mountable filesystem
+    TBlockFilesystem m_Filesystem;
 };
 
 using TBlockPartition = std::shared_ptr<BlockPartition>;

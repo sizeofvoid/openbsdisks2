@@ -26,20 +26,18 @@
 
 #pragma once
 
-#include <QObject>
+#include <QString>
+#include <QStringList>
 
-class Block;
-class BlockPartTable : public QObject {
-    Q_OBJECT
+class BlockPartTable {
 public:
-    BlockPartTable(Block* parent);
-
+    BlockPartTable() = default;
     void setTableType(const QString&);
     QString tableType() const;
 
+private:
     QStringList partitionBlockNames;
 
-private:
     QString m_tableType;
 };
 

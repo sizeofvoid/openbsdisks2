@@ -30,16 +30,48 @@
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
+#include <QDBusObjectPath>
 #include <QProcess>
 
+#include "bsdisks.h"
 #include "drive.h"
+
+Drive::Drive(const QString& devName)
+    : QDBusContext()
+    , m_deviceName(devName)
+    , m_dbusPath(QDBusObjectPath(UDisksDrives + devName))
+{
+}
+
+const QDBusObjectPath
+Drive::getDbusPath() const
+{
+    return m_dbusPath;
+}
+
+QString
+Drive::getDeviceName() const
+{
+    return m_deviceName;
+}
+void Drive::addBlock(const TBlock& block)
+{
+    qDebug() << "Disk " << getDeviceName() << " add block: " << block->getName();
+    m_blocks.push_back(block);
+}
+
+const TBlockVec
+Drive::getBlocks() const
+{
+    return m_blocks;
+}
 
 void Drive::Eject(const QVariantMap& options)
 {
     if (!optical())
         return;
 
-    int fd = open((QStringLiteral("/dev/") + geomName).toLocal8Bit().constData(), O_RDONLY);
+    int fd = open((QStringLiteral("/dev/") + getDeviceName()).toLocal8Bit().constData(), O_RDONLY);
     if (fd < 0 && errno != ENXIO) {
         QString errorMessage = ::strerror(errno);
         connection().send(message().createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
@@ -65,7 +97,7 @@ Configuration Drive::configuration() const
 
 bool Drive::optical() const
 {
-    return geomName.startsWith("cd");
+    return getDeviceName().startsWith("cd");
 }
 
 QStringList Drive::mediaCompatibility() const
@@ -128,10 +160,4 @@ QString Drive::bsdisks_ConnectionBusR() const
 QString Drive::bsdisks_AtaSataR() const
 {
     return ataSata;
-}
-
-Drive::Drive::Drive()
-    : camcontrolProbeDone(false)
-    , geomProbeDone(false)
-{
 }

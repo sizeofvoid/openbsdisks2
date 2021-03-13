@@ -6,7 +6,7 @@ set(OPENBSDISKS_VERSION_MINOR "0")
 set(OPENBSDISKS_VERSION_PATCH "1")
 set(OPENBSDISKS_VERSION "${OPENBSDISKS_VERSION_MAJOR}.${OPENBSDISKS_VERSION_MINOR}.${OPENBSDISKS_VERSION_PATCH}")
 
-project(oudisks2
+project(openbsdisks2
         VERSION ${OPENBSDISKS_VERSION}
         DESCRIPTION ""
         HOMEPAGE_URL "")
@@ -43,16 +43,16 @@ set(SOURCE
     src/disk_thread.cpp
     src/disk_label.cpp
 )
-add_executable(oudisks2 ${SOURCE})
+add_executable(openbsdisks2 ${SOURCE})
 
-target_link_libraries(oudisks2 Qt5::DBus Qt5::Core util)
+target_link_libraries(openbsdisks2 Qt5::DBus Qt5::Core util)
 
-target_compile_features(oudisks2 PRIVATE cxx_std_17)
-target_compile_options(oudisks2 PRIVATE "-Wall")
-target_compile_options(oudisks2 PRIVATE "-pipe")
-target_compile_options(oudisks2 PRIVATE "-fexceptions")
+target_compile_features(openbsdisks2 PRIVATE cxx_std_17)
+target_compile_options(openbsdisks2 PRIVATE "-Wall")
+target_compile_options(openbsdisks2 PRIVATE "-pipe")
+target_compile_options(openbsdisks2 PRIVATE "-fexceptions")
 
-install(TARGETS oudisks2
+install(TARGETS openbsdisks2
         RUNTIME DESTINATION bin COMPONENT Runtime)
 
 configure_file(org.freedesktop.UDisks2.service.in org.freedesktop.UDisks2.service)

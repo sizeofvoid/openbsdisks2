@@ -25,15 +25,19 @@
 */
 
 #include "blockpartition.h"
-#include "block.h"
 
 QString BlockPartition::name() const
 {
     return QString();
 }
 
-BlockPartition::BlockPartition(Block* parent)
-    : QObject(parent)
-    , partTableBlock(nullptr)
+void BlockPartition::addFilesystem(const TBlockFilesystem& fs)
 {
+    m_Filesystem = fs;
+}
+
+TBlockFilesystem
+BlockPartition::getFilesystem() const
+{
+    return m_Filesystem;
 }

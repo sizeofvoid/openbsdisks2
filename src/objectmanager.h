@@ -40,34 +40,25 @@ class ObjectManager : public QObject {
 public slots:
     DBUSManagerStruct GetManagedObjects();
 
-    void filesystemAdded(Block*, const QString&);
+    void addBlock(const TBlock&);
+    void updateBlock(const TBlock&);
+    void removeBlock(const TBlock&);
 
-    void addBlock(const TDiskLabel&);
-    void updateBlock(const TDiskLabel&);
-    void removeBlock(const TDiskLabel&);
-
-    void addDrive(const TDiskLabel&);
-    void removeDrive(const TDiskLabel&);
+    void addDrive(TDrive);
+    void removeDrive(const TDrive&);
 
 signals:
-    void InterfacesAdded(const QDBusObjectPath& , const QVariantMapMap&);
+    void InterfacesAdded(const QDBusObjectPath&, const QVariantMapMap&);
     void InterfacesRemoved(const QDBusObjectPath&, const QStringList&);
 
 private:
-    void startFilesystemProbe(Block*);
-
-    void registerDrive(Drive*);
-    bool registerBlock(Block*, bool = true);
-    void postponeRegistration(const QString&);
-    void tryRegisterPostponed();
-
-    void addPartition(Block*, const QString&);
+    void registerDrive(const TDrive&);
+    bool registerBlock(const TBlock&, bool = true);
 
     void addInterfaces(const QDBusObjectPath&, const QList<std::pair<QString, QDBusAbstractAdaptor*>>&);
     void removeInterfaces(const QDBusObjectPath&, const QStringList&);
 
     bool initialProbeDone;
-    QHash<QString, Block*> m_blockObjects;
-    QHash<QString, Drive*> m_driveObjects;
-    QSet<QString> m_postponedRegistrations;
+    QHash<QString, TBlock> m_blockObjects;
+    QHash<QString, TDrive> m_driveObjects;
 };

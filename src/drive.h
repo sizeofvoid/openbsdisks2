@@ -31,22 +31,46 @@
 #include <QObject>
 
 #include "adaptors.h"
+#include "block.h"
 
+/**
+ *
+ * org.freedesktop.UDisks2.Drive
+ *
+ * This interface is used to represent both hard disks and disk drives (with
+ * or without removable media).
+ *
+ * This interface should not to be confused with the
+ * org.freedesktop.UDisks2.Block interface that is used for low-level block
+ * devices the OS knows about. For example, if /dev/sda and /dev/sdb are block
+ * devices for two paths to the same drive, there will be only one
+ * org.freedesktop.UDisks2.Drive object but two org.freedesktop.UDisks2.Block
+ * objects.
+ *
+ * http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Drive.html
+ */
 class Drive : public QObject,
               public QDBusContext {
     Q_OBJECT
 public:
-    Drive();
+    Drive() = default;
+    Drive(const QString&);
+    ~Drive()
+    {
+        qDebug() << "~Drive";
+    };
 
-    QDBusObjectPath dbusPath;
-    QString geomName;
+    const QDBusObjectPath getDbusPath() const;
+
     QString description;
     QString identifier;
     bool isRemovable;
     QString ataSata;
 
-    bool camcontrolProbeDone;
-    bool geomProbeDone;
+    QString getDeviceName() const;
+
+    void addBlock(const TBlock&);
+    const TBlockVec getBlocks() const;
 
     Q_PROPERTY(Configuration Configuration READ configuration)
     Configuration configuration() const;
@@ -87,4 +111,12 @@ public:
 
 public slots:
     void Eject(const QVariantMap& options);
+
+private:
+    TBlockVec m_blocks;
+    const QString m_deviceName;
+    const QDBusObjectPath m_dbusPath;
 };
+
+using TDrive = std::shared_ptr<Drive>;
+using TDriveVec = std::vector<TDrive>;

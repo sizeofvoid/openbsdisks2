@@ -16,76 +16,151 @@
  */
 
 #include "disk_label.h"
-#include <QChar>
-#include <QString>
+#include "block.h"
+#include "blockpartition.h"
+#include "bsdisks.h"
 
-#include <QDebug>
-#include <err.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/sysctl.h>
-#include <sys/types.h>
+#define DKTYPENAMES
+#include <sys/disklabel.h>
 
 #include <fcntl.h>
-#include <sys/disklabel.h>
 #include <sys/dkio.h>
 #include <sys/ioctl.h>
-#include <util.h>
 #include <unistd.h>
+#include <util.h>
+
+#include <QChar>
+#include <QDebug>
+#include <QString>
 
 DiskLabel::DiskLabel(const QString& dev)
-    : m_deviceName(dev)
 {
-    analyseDev();
+    analyseDev(dev);
 }
 
-void DiskLabel::analyseDev()
+void DiskLabel::analyseDev(const QString& dev)
 {
     struct disklabel lab;
     char* specname;
-    int f = opendev(m_deviceName.toLocal8Bit().data(),
+    int f = opendev(dev.toLocal8Bit().data(),
         O_RDONLY,
         OPENDEV_PART,
         &specname);
 
-
     if (ioctl(f, DIOCGDINFO, &lab) == -1) {
         close(f);
         return;
-        //err(4, "DIOCRLDINFO");
     }
+
+    createDrive(dev);
 
     struct disklabel::partition* pp = nullptr;
 
     for (int i = 0; i < lab.d_npartitions; i++) {
         pp = &lab.d_partitions[i];
-        double p_size;
-
         if (DL_GETPSIZE(pp)) {
-            u_int32_t frag = DISKLABELV1_FFS_FRAG(pp->p_fragblock);
-            u_int32_t fsize = DISKLABELV1_FFS_FSIZE(pp->p_fragblock);
             QChar p('a' + i);
-            if (p != QChar('c'))
-                m_devicePartitions << p;
+            if (p != QChar('c')) {
+                if (isValidFileSysetem(pp->p_fstype)) {
+                    createBlock(QString(p), QString(fstypesnames[pp->p_fstype]));
+                }
+            }
         }
     }
     close(f);
 }
 
-QStringList const&
-DiskLabel::getDevicePartitions() const
+bool DiskLabel::isValidFileSysetem(u_int8_t fstype) const
 {
-    return m_devicePartitions;
+    switch (fstype) {
+    case FS_UNUSED:
+    case FS_SWAP:
+    case FS_V6:
+    case FS_V7:
+    case FS_SYSV:
+    case FS_V71K:
+    case FS_V8:
+        return false;
+
+    case FS_BSDFFS:
+    case FS_MSDOS:
+        return true;
+
+    case FS_BSDLFS:
+    case FS_OTHER:
+    case FS_HPFS:
+        return false;
+    case FS_ISO9660:
+        return true;
+
+    case FS_BOOT:
+    case FS_ADOS:
+    case FS_HFS:
+    case FS_ADFS:
+        return false;
+
+    case FS_EXT2FS:
+        return true;
+
+    case FS_CCD:
+    case FS_RAID:
+        return false;
+
+    case FS_NTFS:
+        return true;
+
+    case FS_UDF:
+        return false;
+    };
+    return false;
 }
 
-QString const&
+TDrive
+DiskLabel::getDrive() const
+{
+    return m_drive;
+}
+
+QString
 DiskLabel::getDeviceName() const
 {
-    return m_deviceName;
+    assert(getDrive());
+    return getDrive() ? getDrive()->getDeviceName() : QString();
 }
 
-bool
-DiskLabel::isValid() const
+bool DiskLabel::isValid() const
 {
-    return !m_devicePartitions.isEmpty();
+    return m_drive != nullptr;
+}
+
+void DiskLabel::createDrive(const QString& dev)
+{
+    qDebug() << "Created drive " << dev;
+    m_drive = std::make_shared<Drive>(dev);
+}
+
+void DiskLabel::createBlock(const QString& partitionNumber, const QString& fstype)
+{
+    const QString dev(getDeviceName() + partitionNumber);
+    auto block = std::make_shared<Block>(dev);
+
+    auto partition = std::make_shared<BlockPartition>();
+    block->addPartition(partition);
+
+    auto bfs = std::make_shared<BlockFilesystem>();
+    bfs->filesystem = fstype;
+    block->idUsage = QStringLiteral("filesystem");
+    block->idType = fstype;
+    ;
+
+    for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
+        if (storage.isValid() && storage.isReady()) {
+            if (!storage.device().compare(block->device().chopped(1))) {
+                bfs->mountPoints << storage.rootPath().toLocal8Bit();
+                break;
+            }
+        }
+    }
+    block->getPartition()->addFilesystem(bfs);
+    m_drive->addBlock(block);
 }

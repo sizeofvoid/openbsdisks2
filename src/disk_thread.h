@@ -30,9 +30,9 @@ public:
     void run() override;
 
 signals:
-    void deviceAdded(TDiskLabel const&);
-    void blockAdded(TDiskLabel const&);
-    void blockRemoved(TDiskLabel const&);
+    void deviceAdded(TDrive);
+    void blockAdded(TBlock);
+    void deviceRemoved(TDrive);
 
 private slots:
     void check();

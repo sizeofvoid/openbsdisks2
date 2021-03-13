@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <QDBusConnection>
 #include <QDBusContext>
 #include <QDBusObjectPath>
 #include <QDebug>
@@ -41,14 +42,19 @@
 class Block : public QObject,
               public QDBusContext {
     Q_OBJECT
+
 public:
-    Block(QObject* parent = 0);
+    Block(const QString&);
+    Block() = default;
+    ~Block()
+    {
+        qDebug() << "~Block";
+    };
 
-    BlockFilesystem* bFilesystem;
-    BlockPartition* bPartition;
-    BlockPartTable* bPartTable;
+    const QDBusObjectPath getDbusPath() const;
+    QString getName() const;
 
-    QString name;
+    //XXX
     QString description;
     QString identifier;
     QDBusObjectPath dbusPath;
@@ -56,11 +62,17 @@ public:
 
     std::bitset<2> probesDone;
 
-    bool needsAnotherProbe;
+    bool needsAnotherProbe = false;
 
     bool registered = false;
 
-    bool hasNoDrive;
+    bool hasNoDrive = false;
+
+    void addPartition(const TBlockPartition&);
+    TBlockPartition getPartition() const;
+
+    void addPartitionTable(const TBlockPartTable&);
+    TBlockPartTable getPartitionTable() const;
 
     QString driveName() const;
 
@@ -158,18 +170,38 @@ public:
 public slots:
     QString Mount(const QVariantMap& options)
     {
-        if (!bFilesystem)
+        /*
+        if (!getPartition() && !getPartition()->getFilesystem())
             return QString();
 
-        return bFilesystem->Mount(options);
+        return getPartition()->getFilesystem()->Mount(options, connection(), message());
+        */
+        qInfo("Not yet implemented.");
+        return QString();
     }
     void Unmount(const QVariantMap& options)
     {
-        if (!bFilesystem)
+        /*
+        if (!getPartition() && !getPartition()->getFilesystem())
             return;
 
-        return bFilesystem->Unmount(options);
+        return getPartition()->getFilesystem()->Unmount(options, connection(), message());
+        */
+        qInfo("Not yet implemented.");
     }
+
+private:
+    const QString m_Name;
+    const QDBusObjectPath m_dbusPath;
+
+    // org.freedesktop.UDisks2.Partition — Block device representing a partition
+    TBlockPartition m_Partition;
+    // org.freedesktop.UDisks2.PartitionTable — Block device containing a partition table
+    TBlockPartTable m_PartTable;
+
+    //org.freedesktop.UDisks2.Swapspace — Block device containing swap data
+    //org.freedesktop.UDisks2.Encrypted — Block device containing encrypted data
+    //org.freedesktop.UDisks2.Loop — Block device backed by a file
 };
 
 using TBlock = std::shared_ptr<Block>;

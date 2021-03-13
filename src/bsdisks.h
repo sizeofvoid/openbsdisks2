@@ -31,10 +31,3 @@
 const QString UDisksService = QStringLiteral("/org/freedesktop/UDisks2/");
 const QString UDisksBlockDevices = QStringLiteral("/org/freedesktop/UDisks2/block_devices/");
 const QString UDisksDrives = QStringLiteral("/org/freedesktop/UDisks2/drives/");
-
-class BsdisksConfig {
-public:
-    QString MountMsdosfsFlags;
-
-    static BsdisksConfig& get();
-};
