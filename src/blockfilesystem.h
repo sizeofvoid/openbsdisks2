@@ -26,18 +26,18 @@
 
 #pragma once
 
-#include <QObject>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QString>
+#include <QVariantMap>
 
-class Block;
-
-class BlockFilesystem : public QObject {
-    Q_OBJECT
+class BlockFilesystem {
 public:
-    BlockFilesystem(Block* parent);
-    virtual ~BlockFilesystem();
+    QString Mount(const QVariantMap& options) { return QString(); };
+    void Unmount(const QVariantMap& options) {};
 
-    QString Mount(const QVariantMap& options);
-    void Unmount(const QVariantMap& options);
+    QString Mount(const QVariantMap& options, QDBusConnection, const QDBusMessage&);
+    void Unmount(const QVariantMap& options, QDBusConnection, const QDBusMessage&);
 
     QString filesystem;
     QByteArrayList mountPoints;
@@ -46,6 +46,7 @@ public:
 
 private:
     void signalMountPointsChanged();
-
-    Block* parentBlock();
 };
+
+using TBlockFilesystem = std::shared_ptr<BlockFilesystem>;
+using TBlockFilesystemVec = std::vector<TBlockFilesystem>;

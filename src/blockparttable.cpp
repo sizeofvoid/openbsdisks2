@@ -25,7 +25,6 @@
 */
 
 #include "blockparttable.h"
-#include "block.h"
 
 void BlockPartTable::setTableType(const QString& tt)
 {
@@ -40,9 +39,4 @@ QString BlockPartTable::tableType() const
         return QStringLiteral("gpt");
 
     return QString();
-}
-
-BlockPartTable::BlockPartTable(Block* parent)
-    : QObject(parent)
-{
 }

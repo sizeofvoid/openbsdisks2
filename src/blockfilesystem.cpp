@@ -93,15 +93,12 @@ static void removeMountPoint(QString mp, bool checkIfEmpty = false)
     mpDir.rmdir(dirName);
 }
 
-QString BlockFilesystem::Mount(const QVariantMap& options)
+QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
 {
-
-    auto msg = parentBlock()->message();
-    auto conn = parentBlock()->connection();
-
     // fail if already mounted
     if (mountPoints.count() > 0) {
-        QString error = "Mount: device " + parentBlock()->id() + "already mounted";
+        QString error = "Mount: device already mounted";
+        // QString error = "Mount: device " + parentBlock()->id() + "already mounted";
         qDebug() << error;
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.AlreadyMounted", error));
         return QString();
@@ -122,15 +119,13 @@ QString BlockFilesystem::Mount(const QVariantMap& options)
     QProcess mount;
     QString mountPoint = filesystem == "zfs"
         ? zfsDataset
-        : createMountPoint(parentBlock()->id().replace(' ', '_'), uid);
+        : "";
+    //: createMountPoint(parentBlock()->id().replace(' ', '_'), uid);
     QStringList args;
 
     auto mountProg = QStringLiteral("/sbin/mount");
     if (filesystem == "msdosfs") {
         mountProg = QStringLiteral("/sbin/mount_msdosfs");
-
-        if (!BsdisksConfig::get().MountMsdosfsFlags.isEmpty())
-            args << BsdisksConfig::get().MountMsdosfsFlags.split(' ');
     }
     else if (filesystem == "ntfs") {
         mountProg = QStringLiteral("ntfs-3g");
@@ -156,8 +151,8 @@ QString BlockFilesystem::Mount(const QVariantMap& options)
 
         args << QStringLiteral("mount") << mountPoint;
     }
-    else
-        args << parentBlock()->device() << mountPoint;
+    //else
+    // args << parentBlock()->device() << mountPoint;
 
     mount.setProgram(mountProg);
     mount.setArguments(args);
@@ -184,11 +179,8 @@ QString BlockFilesystem::Mount(const QVariantMap& options)
     return mountPoint;
 }
 
-void BlockFilesystem::Unmount(const QVariantMap& options)
+void BlockFilesystem::Unmount(const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
 {
-    auto msg = parentBlock()->message();
-    auto conn = parentBlock()->connection();
-
     if (mountPoints.empty()) {
         QString error = "Unmount: requested filesystem is not mounted";
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.NotMounted", error));
@@ -256,7 +248,7 @@ void BlockFilesystem::signalMountPointsChanged()
     props.insert(QStringLiteral("MountPoints"), QVariant::fromValue(mountPoints));
 
     QDBusMessage signal = QDBusMessage::createSignal(
-        parentBlock()->dbusPath.path(),
+        "", // XX parentBlock()->dbusPath.path(),
         QStringLiteral("org.freedesktop.DBus.Properties"),
         QStringLiteral("PropertiesChanged"));
 
@@ -264,18 +256,4 @@ void BlockFilesystem::signalMountPointsChanged()
            << props
            << QStringList();
     QDBusConnection::systemBus().send(signal);
-}
-
-BlockFilesystem::~BlockFilesystem()
-{
-}
-
-Block* BlockFilesystem::parentBlock()
-{
-    return qobject_cast<Block*>(parent());
-}
-
-BlockFilesystem::BlockFilesystem(Block* parent)
-    : QObject(parent)
-{
 }

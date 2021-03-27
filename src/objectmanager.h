@@ -1,5 +1,6 @@
 /*
     Copyright 2016-2019 Gleb Popov <6yearold@gmail.com>
+    Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
@@ -39,35 +40,25 @@ class ObjectManager : public QObject {
 public slots:
     DBUSManagerStruct GetManagedObjects();
 
-    void filesystemAdded(Block* b, QString fs);
+    void addBlock(const TBlock&);
+    void updateBlock(const TBlock&);
+    void removeBlock(const TBlock&);
 
-    void addBlock(TDiskLabel const&);
-    void updateBlock(QString dev);
-    void removeBlock(TDiskLabel const&);
+    void addDrive(TDrive);
+    void removeDrive(const TDrive&);
 
-    void addDrive(TDiskLabel const&);
-    void removeDrive(TDiskLabel const&);
-
-    void initialProbe();
 signals:
-    void InterfacesAdded(const QDBusObjectPath& object_path, const QVariantMapMap& interfaces_and_properties);
-    void InterfacesRemoved(const QDBusObjectPath& object_path, const QStringList& interfaces);
+    void InterfacesAdded(const QDBusObjectPath&, const QVariantMapMap&);
+    void InterfacesRemoved(const QDBusObjectPath&, const QStringList&);
 
 private:
-    void startFilesystemProbe(Block* b);
+    void registerDrive(const TDrive&);
+    bool registerBlock(const TBlock&, bool = true);
 
-    void registerDrive(Drive* d);
-    bool registerBlock(Block* d, bool tryPostponed = true);
-    void postponeRegistration(QString blockName);
-    void tryRegisterPostponed();
-
-    void addPartition(Block* b, const QString& tableBlockName);
-
-    void addInterfaces(QDBusObjectPath path, QList<std::pair<QString, QDBusAbstractAdaptor*>> newInterfaces);
-    void removeInterfaces(QDBusObjectPath path, QStringList ifaces);
+    void addInterfaces(const QDBusObjectPath&, const QList<std::pair<QString, QDBusAbstractAdaptor*>>&);
+    void removeInterfaces(const QDBusObjectPath&, const QStringList&);
 
     bool initialProbeDone;
-    QHash<QString, Block*> m_blockObjects;
-    QHash<QString, Drive*> m_driveObjects;
-    QSet<QString> m_postponedRegistrations;
+    QHash<QString, TBlock> m_blockObjects;
+    QHash<QString, TDrive> m_driveObjects;
 };

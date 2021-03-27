@@ -56,7 +56,7 @@ class ObjectManagerAdaptor : public QDBusAbstractAdaptor {
                                        "")
 public:
     ObjectManagerAdaptor(QObject* parent);
-    virtual ~ObjectManagerAdaptor();
+    virtual ~ObjectManagerAdaptor() = default;
 
 public: // PROPERTIES
 public Q_SLOTS: // METHODS

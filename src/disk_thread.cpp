@@ -73,7 +73,6 @@ void DiskThread::run()
 
 void DiskThread::check()
 {
-    qDebug() << "RUN check with size " << diskLabels.size();
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
     const QString disks = readDisknames();
     const auto devNameUuids = getCurrentDev(disks);
@@ -82,62 +81,55 @@ void DiskThread::check()
         addNewDevices(devNameUuid.first);
 
     std::vector<QString> toDelete;
-    for (auto const& distlable : diskLabels)
-    {
+    for (auto const& dl : diskLabels) {
         if (std::none_of(std::begin(devNameUuids),
-                        std::end(devNameUuids),
-                        [&](auto const& du) -> bool {
-                                return du.first == distlable->getDeviceName();
-                        }))
-        {
-            toDelete.push_back(distlable->getDeviceName());
-            emit blockRemoved(distlable);
+                std::end(devNameUuids),
+                [&](auto const& du) -> bool {
+                    return du.first == dl->getDeviceName();
+                })) {
+            toDelete.push_back(dl->getDeviceName());
+            emit deviceRemoved(dl->getDrive());
         }
     }
-    for (auto const& del: toDelete) {
+    for (auto const& del : toDelete) {
         removeDevices(del);
     }
-
 }
 
-void
-DiskThread::removeDevices(const QString& devName)
+void DiskThread::removeDevices(const QString& devName)
 {
     diskLabels.erase(std::remove_if(diskLabels.begin(), diskLabels.end(),
-           [&](TDiskLabel const& d) -> bool { return devName == d->getDeviceName(); }),
-           diskLabels.end());
+                         [&](TDiskLabel const& d) -> bool { return devName == d->getDeviceName(); }),
+        diskLabels.end());
 }
 
-void
-DiskThread::addNewDevices(const QString& devName)
+void DiskThread::addNewDevices(const QString& devName)
 {
     if (std::find_if(std::begin(diskLabels),
-                    std::end(diskLabels),
-                        [&](TDiskLabel const& d) -> bool {
-                            return devName == d->getDeviceName();})
-            == std::end(diskLabels))
-    {
+            std::end(diskLabels),
+            [&](TDiskLabel const& d) -> bool { return devName == d->getDeviceName(); })
+        == std::end(diskLabels)) {
         auto dl = std::make_shared<DiskLabel>(devName);
-        diskLabels.push_back(dl);
-        if (dl->isValid())
-        {
-            emit deviceAdded(dl);
-            emit blockAdded(dl);
+        if (dl->isValid()) {
+            diskLabels.push_back(dl);
+            emit deviceAdded(dl->getDrive());
+            for (const TBlock& block : dl->getDrive()->getBlocks())
+                emit blockAdded(block);
         }
     }
 }
 
-std::vector<std::pair<QString,QString>>
+std::vector<std::pair<QString, QString>>
 DiskThread::getCurrentDev(const QString& disks)
 {
-    std::vector<std::pair<QString,QString>> devNameUuids;
+    std::vector<std::pair<QString, QString>> devNameUuids;
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
 
     const QStringList nameUuids = disks.split(QLatin1Char(','));
     for (QString const& nameUuid : nameUuids) {
         const QStringList name2Uuid = nameUuid.split(QLatin1Char(':'));
         // We want both name2Uuid und uuid to verify valid devices
-        if (name2Uuid.size() >=1) {
+        if (name2Uuid.size() >= 1) {
             QString dev = name2Uuid.at(0);
             devNameUuids.emplace_back(name2Uuid.at(0), name2Uuid.at(1));
         }

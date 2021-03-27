@@ -26,30 +26,62 @@
 
 #include <sys/stat.h>
 
+#include <QByteArrayList>
 #include <QFileInfo>
 
 #include "block.h"
 #include "bsdisks.h"
 
-Block::Block(QObject* parent)
-    : QObject(parent)
-    , bFilesystem(nullptr)
-    , bPartition(nullptr)
-    , bPartTable(nullptr)
-    , needsAnotherProbe(false)
-    , registered(false)
-    , hasNoDrive(false)
+Block::Block(const QString& blockName)
+    : QDBusContext()
+    , m_Name(blockName)
+    , m_dbusPath(QDBusObjectPath(UDisksBlockDevices + blockName))
 {
+}
+
+const QDBusObjectPath
+Block::getDbusPath() const
+{
+    return m_dbusPath;
+}
+
+QString
+Block::getName() const
+{
+    return m_Name;
+}
+
+void Block::addPartition(const TBlockPartition& partition)
+{
+    m_Partition = partition;
+}
+
+void Block::addPartitionTable(const TBlockPartTable& btt)
+{
+    m_PartTable = btt;
+}
+
+TBlockPartition
+Block::getPartition() const
+{
+    return m_Partition;
+}
+
+TBlockPartTable
+Block::getPartitionTable() const
+{
+    return m_PartTable;
 }
 
 QString Block::id() const
 {
-    if (bPartition) {
-        auto tableType = bPartition->partTableBlock->bPartTable->tableType();
+    if (getPartitionTable()) {
+        auto tableType = getPartitionTable()->tableType();
         QChar partitionSymbol = tableType == QStringLiteral("gpt")
             ? 'p'
             : 's';
-        return bPartition->partTableBlock->id() + "_" + name.mid(name.lastIndexOf(partitionSymbol));
+        return partitionSymbol;
+        // XXX return getPartitionTable()->id() + "_" + getName().mid(getName().lastIndexOf(partitionSymbol));
     }
     else
         return description + "_" + identifier;
@@ -57,8 +89,10 @@ QString Block::id() const
 
 QString Block::idLabel() const
 {
-    if (bFilesystem && bFilesystem->filesystem == "zfs")
-        return bFilesystem->zfsDataset;
+    /*
+    if (m_Filesystem && m_Filesystem->filesystem == "zfs")
+        return m_Filesystem->zfsDataset;
+        */
 
     return labels.empty()
         ? QString()
@@ -67,10 +101,12 @@ QString Block::idLabel() const
 
 QString Block::driveName() const
 {
-    if (bPartition)
-        return bPartition->partTableBlock->driveName();
+    /*
+    if (getPartition())
+        return getPartitionTable()->driveName();
+        */
 
-    return name;
+    return getName();
 }
 
 QDBusObjectPath Block::drive() const
@@ -87,14 +123,14 @@ QByteArray Block::preferredDevice() const
 
 QByteArray Block::device() const
 {
-    return (QStringLiteral("/dev/") + name).toLocal8Bit() + '\0';
+    return (QStringLiteral("/dev/") + getName()).toLocal8Bit() + '\0';
 }
 
 qulonglong Block::deviceNumber() const
 {
     struct stat st;
 
-    ::stat((QStringLiteral("/dev/") + name).toLocal8Bit().constData(), &st);
+    ::stat((QStringLiteral("/dev/") + getName()).toLocal8Bit().constData(), &st);
     return st.st_rdev;
 }
 
@@ -108,17 +144,17 @@ QByteArrayList Block::symlinks()
 
 qulonglong Block::blockSize() const
 {
-    return bPartition ? bPartition->size : size;
+    return getPartition() ? m_Partition->size : size;
 }
 
 bool Block::hintIgnore() const
 {
-    if (bPartition) {
+    if (getPartition()) {
         // there should be better predicate for this, probably
         // right now ignore efi partitions on ada/ad, these usually contain bootloader
         // stuff and not needed to be mounted by regular user
         QFileInfo devInfo(device());
-        if (bPartition->partitionType == "efi" && devInfo.fileName().startsWith("ad"))
+        if (getPartition()->partitionType == "efi" && devInfo.fileName().startsWith("ad"))
             return true;
     }
 
@@ -132,10 +168,10 @@ QString Block::hintName() const
 
 QByteArrayList Block::mountPoints() const
 {
-    if (bFilesystem) {
+    if (getPartition() && getPartition()->getFilesystem()) {
         QByteArrayList r;
 
-        for (auto mp : bFilesystem->mountPoints)
+        for (auto mp : getPartition()->getFilesystem()->mountPoints)
             r << mp + '\0';
 
         return r;
@@ -146,56 +182,56 @@ QByteArrayList Block::mountPoints() const
 
 QString Block::partitionTableType()
 {
-    if (!bPartTable)
+    if (!getPartitionTable())
         return QString();
 
-    return bPartTable->tableType();
+    return getPartitionTable()->tableType();
 }
 
 QString Block::partitionName() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return QString();
 
-    return bPartition->name();
+    return getPartition()->name();
 }
 
 uint Block::number() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return 0;
 
-    return bPartition->number;
+    return getPartition()->number;
 }
 
 qulonglong Block::offset() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return 0;
 
-    return bPartition->offset;
+    return getPartition()->offset;
 }
 
 qulonglong Block::partitionSize() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return 0;
 
-    return bPartition->size;
+    return getPartition()->size;
 }
 
 QString Block::partitionType() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return 0;
 
-    return bPartition->partitionType;
+    return getPartition()->partitionType;
 }
 
 QDBusObjectPath Block::table() const
 {
-    if (!bPartition)
+    if (!getPartition())
         return QDBusObjectPath("/");
 
-    return bPartition->partTableBlock->dbusPath;
+    return dbusPath;
 }

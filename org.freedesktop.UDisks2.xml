@@ -1,3 +1,4 @@
+
 <!DOCTYPE node PUBLIC
 "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
 "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
@@ -35,6 +36,76 @@
     <!-- Version: The version of the daemon currently running  -->
     <property name="Version" type="s" access="read"/>
 
+    <!-- SupportedFilesystems: List of supported filesystem by UDisks2 -->
+    <property name="SupportedFilesystems" type="as" access="read"/>
+
+    <!-- SupportedEncryptionTypes: List of supported encryption types by UDisks2 -->
+    <property name="SupportedEncryptionTypes" type="as" access="read"/>
+    <property name="DefaultEncryptionType" type="s" access="read"/>
+
+    <!--
+        CanFormat:
+        @type: The filesystem type to be tested for formatting availability.
+        @available: Formatting availability and the required binary name if missing (i.e. no error and returns FALSE).
+        @since: 2.7.2
+
+        Tests for availability to create the given filesystem.
+        See the #org.freedesktop.UDisks2.Manager:SupportedFilesystems property
+        for a list of known types. Unknown or unsupported filesystems result in an error.
+    -->
+    <method name="CanFormat">
+      <arg name="type" direction="in" type="s"/>
+      <arg name="available" direction="out" type="(bs)"/>
+    </method>
+
+    <!--
+        CanResize:
+        @type: The filesystem type to be tested for resize availability.
+        @available: Resizing availability, flags for allowed resizing (i.e. growing/shrinking support for online/offline) and the required binary name if missing (i.e. no error and returns FALSE).
+        @since: 2.7.2
+
+        Tests for availability to resize the given filesystem.
+        The mode flags indicate if growing and/or shriking resize is available if mounted/unmounted.
+        The mode corresponds to bitwise-OR combined BDFsResizeFlags of the libblockdev FS plugin:
+        BD_FS_OFFLINE_SHRINK = 2, shrinking resize allowed when unmounted
+        BD_FS_OFFLINE_GROW = 4, growing resize allowed when unmounted
+        BD_FS_ONLINE_SHRINK = 8, shrinking resize allowed when mounted
+        BD_FS_ONLINE_GROW = 16, growing resize allowed when mounted
+        Unknown filesystems or filesystems which do not support resizing result in errors.
+    -->
+    <method name="CanResize">
+      <arg name="type" direction="in" type="s"/>
+      <arg name="available" direction="out" type="(bts)"/>
+    </method>
+
+    <!--
+        CanCheck:
+        @type: The filesystem type to be tested for consistency check availability.
+        @available: Checking availability and the required binary name if missing (i.e. no error and returns FALSE).
+        @since: 2.7.2
+
+        Tests for availability to check the given filesystem.
+        Unsupported filesystems or filesystems which do not support checking result in errors.
+    -->
+    <method name="CanCheck">
+      <arg name="type" direction="in" type="s"/>
+      <arg name="available" direction="out" type="(bs)"/>
+    </method>
+
+    <!--
+        CanRepair:
+        @type: The filesystem type to be tested for repair availability.
+        @available: Repair availability and the required binary name if missing (i.e. no error and returns FALSE).
+        @since: 2.7.2
+
+        Tests for availability repair the given filesystem.
+        Unsupported filesystems or filesystems which do not support repairing result in errors.
+    -->
+    <method name="CanRepair">
+      <arg name="type" direction="in" type="s"/>
+      <arg name="available" direction="out" type="(bs)"/>
+    </method>
+
     <!--
         LoopSetup:
         @fd: An index for the file descriptor to use.
@@ -48,7 +119,6 @@
       <arg name="fd" direction="in" type="h"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="resulting_device" direction="out" type="o"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -59,7 +129,7 @@
         @chunk: The chunk size (in bytes) or 0 if @level is <quote>raid1</quote>.
         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
         @resulting_array: An object path to the object implementing the #org.freedesktop.UDisks2.MDRaid interface.
-        @since: 2.1
+        @since: 2.0.0
 
         Creates a new RAID array on the block devices specified by
         @blocks. Each element in this array must be an object path to
@@ -82,7 +152,103 @@
       <arg name="chunk" direction="in" type="t"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="resulting_array" direction="out" type="o"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
+    </method>
+
+    <!--
+        EnableModules:
+        @enable: A boolean value indicating whether modules should be enabled. Currently only the %TRUE value is permitted.
+
+        Loads and activates modules. Modules that have been already loaded are not reinitialized on subsequent calls to this method and are skipped.
+        In case any new module is getting activated by this method call a <literal>add</literal> uevent is triggered on all exported objects.
+
+        This takes in account an optional explicit list of modules to load as specified in the <filename>/etc/udisks2/udisks2.conf</filename>
+        config file. If unspecified all available modules will be loaded.
+
+        Modules cannot be deactivated at the moment. This method call never fails even if no module has been activated
+        and by nature it cannot report any particular module initialization failures. Clients have no way of finding that
+        a particular module is available.
+
+        <note>
+        <emphasis>This method is deprecated since 2.9.0.</emphasis>
+        Use org.freedesktop.UDisks2.Manager.EnableModule() instead.
+        </note>
+    -->
+    <method name="EnableModules">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+      <arg name="enable" direction="in" type="b"/>
+    </method>
+
+    <!--
+        EnableModule:
+        @name: Name of the module.
+        @enable: A boolean value indicating whether modules should be enabled. Currently only the %TRUE value is permitted.
+        @since: 2.9.0
+
+        Loads and activates single module identified by @name. In case the module is already active no reinitialization
+        is done and this call has no effect. Clients are supposed to call this method before using any of the particular module API.
+        In case no such module is available or its initialization fails a proper error is returned. This action also causes
+        all objects to receive <literal>add</literal> uevent that allows the module to attach extra interfaces before
+        this method call returns.
+
+        Modules cannot be deactivated at the moment.
+    -->
+    <method name="EnableModule">
+      <arg name="name" direction="in" type="s"/>
+      <arg name="enable" direction="in" type="b"/>
+    </method>
+
+    <!--
+        GetBlockDevices:
+        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @since: 2.7.2
+
+        Get list of all block devices (object paths of objects implementing the #org.freedesktop.UDisks2.Block interface) known to UDisks.
+
+    -->
+    <method name="GetBlockDevices">
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="block_objects" direction="out" type="ao"/>
+    </method>
+
+    <!--
+        ResolveDevice:
+        @devspec: Dictionary with specification of a device.
+        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @devices: List of object paths of all devices matching @devspec.
+        @since: 2.7.3
+
+        Get device(s) matching specification given in @devspec.
+
+        Currently supported keys for @devspec include:
+        <variablelist>
+          <varlistentry>
+            <term>path (type <literal>'s'</literal>)</term>
+            <listitem><para>
+              Device path (e.g. <quote>/dev/sda</quote>). This also includes symlinks in <quote>/dev</quote>
+              (both #org.freedesktop.UDisks2.Block:Device and #org.freedesktop.UDisks2.Block:Symlinks are used).
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>label (type <literal>'s'</literal>)</term>
+            <listitem><para>
+              Filesystem label. #org.freedesktop.UDisks2.Block:IdLabel is used.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>uuid (type <literal>'s'</literal>)</term>
+            <listitem><para>
+              Filesystem UUID. #org.freedesktop.UDisks2.Block:IdUUID is used.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        It is possbile to specify multiple keys. In this case, only devices matching all values will be returned.
+
+    -->
+    <method name="ResolveDevice">
+      <arg name="devspec" direction="in" type="a{sv}"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="devices" direction="out" type="ao"/>
     </method>
   </interface>
 
@@ -180,9 +346,7 @@
          Use the org.freedesktop.UDisks2.Drive.SetConfiguration()
          method to change the value of this property.
     -->
-    <property name="Configuration" type="a{sv}" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="Configuration"/>
-    </property>
+    <property name="Configuration" type="a{sv}" access="read"/>
 
     <!-- Media: The kind of media currently in the drive or blank if unknown.
          See the #org.freedesktop.UDisks2.Drive:MediaCompatibility property for known values.
@@ -201,6 +365,8 @@
       <varlistentry><term>flash_sd</term><listitem><para>Secure Digital</para></listitem></varlistentry>
       <varlistentry><term>flash_sdhc</term><listitem><para>Secure Digital High Capacity</para></listitem></varlistentry>
       <varlistentry><term>flash_sdxc</term><listitem><para>Secure Digital eXtended Capacity</para></listitem></varlistentry>
+      <varlistentry><term>flash_sdio</term><listitem><para>Secure Digital Input Output</para></listitem></varlistentry>
+      <varlistentry><term>flash_sd_combo</term><listitem><para>Secure Digital Input Output combo card with storage and I/O functionality</para></listitem></varlistentry>
       <varlistentry><term>flash_mmc</term><listitem><para>MultiMediaCard</para></listitem></varlistentry>
       <varlistentry><term>floppy</term><listitem><para>Floppy Disk</para></listitem></varlistentry>
       <varlistentry><term>floppy_zip</term><listitem><para>Zip Disk</para></listitem></varlistentry>
@@ -318,7 +484,7 @@
       Known values include:
       <variablelist>
       <varlistentry><term>usb</term><listitem><para>Connected via <ulink url="http://en.wikipedia.org/wiki/USB">USB</ulink></para></listitem></varlistentry>
-      <varlistentry><term>sdio</term><listitem><para>Connected via <ulink url="http://en.wikipedia.org/wiki/Secure_Digital#SDIO">SDIO</ulink></para></listitem></varlistentry>
+      <varlistentry><term>sdio</term><listitem><para>Connected via SDHC or <ulink url="http://en.wikipedia.org/wiki/Secure_Digital">SDIO</ulink> controller (including eMMC).</para></listitem></varlistentry>
       <varlistentry><term>ieee1394</term><listitem><para>Connected via <ulink url="http://en.wikipedia.org/wiki/Firewire">Firewire</ulink></para></listitem></varlistentry>
       </variablelist>
     -->
@@ -376,7 +542,6 @@
     -->
     <method name="Eject">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -395,14 +560,12 @@
     <method name="SetConfiguration">
       <arg name="value" direction="in" type="a{sv}"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
         PowerOff:
         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
-        @since: 2.1
+        @since: 2.0.0
 
         Arranges for the drive to be safely removed and powered
         off. On the OS side this includes ensuring that no process is
@@ -430,11 +593,10 @@
     -->
     <method name="PowerOff">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!-- CanPowerOff:
-         @since: 2.1
+         @since: 2.0.0
          Whether the drive can be safely removed / powered off. See
          the org.freedesktop.UDisks2.Drive.PowerOff() method for more
          information.
@@ -444,7 +606,7 @@
     <property name="CanPowerOff" type="b" access="read"/>
 
     <!-- SiblingId:
-         @since: 2.1
+         @since: 2.0.0
          An opaque token that, if non-blank, is used to group drives
          that are part of the same physical device.
     -->
@@ -472,7 +634,7 @@
          that the SMART status was updated or 0 if never updated.
 
          The value of the other properties related to SMART are not
-         meaningful if this proeprty is 0.
+         meaningful if this property is 0.
     -->
     <property name="SmartUpdated" type="t" access="read"/>
 
@@ -563,7 +725,6 @@
     -->
     <method name="SmartUpdate">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -598,8 +759,6 @@
     <method name="SmartGetAttributes">
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="attributes" direction="out" type="a(ysqiiixia{sv})"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantList"/>
     </method>
 
     <!--
@@ -617,7 +776,6 @@
     <method name="SmartSelftestStart">
       <arg name="type" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -628,14 +786,13 @@
     -->
     <method name="SmartSelftestAbort">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
         SmartSetEnabled:
         @value: %TRUE to enable SMART, %FALSE to disable SMART.
         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
-        @since: 2.1
+        @since: 2.0.0
 
         Sets whether SMART is enabled for the drive. This setting is
         stored in the non-volatile memory in the drive itself and does
@@ -650,7 +807,6 @@
     <method name="SmartSetEnabled">
       <arg name="value" direction="in" type="b"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!-- PmSupported: Whether the drive supports power management. -->
@@ -675,13 +831,13 @@
     <property name="AamVendorRecommendedValue" type="i" access="read"/>
 
     <!-- WriteCacheSupported:
-         @since: 2.1
+         @since: 2.0.0
          Whether the drive supports configuring the write cache.
     -->
     <property name="WriteCacheSupported" type="b" access="read"/>
 
     <!-- WriteCacheEnabled:
-         @since: 2.1
+         @since: 2.0.0
          Whether the write-cache is enabled (or %FALSE if not supported).
     -->
     <property name="WriteCacheEnabled" type="b" access="read"/>
@@ -721,7 +877,6 @@
     <method name="PmGetState">
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="state" direction="out" type="y"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -735,7 +890,6 @@
     -->
     <method name="PmStandby">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -749,7 +903,6 @@
     -->
     <method name="PmWakeup">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!-- SecurityEraseUnitMinutes:
@@ -796,7 +949,6 @@
     -->
     <method name="SecurityEraseUnit">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
 
@@ -843,15 +995,13 @@
          and
          <filename>/dev/disk/by-id/wwn-0x5001517387d61905</filename>.
     -->
-    <property name="Symlinks" type="aay" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="QByteArrayList"/>
-    </property>
+    <property name="Symlinks" type="aay" access="read"/>
 
     <!-- DeviceNumber: The dev_t of the block device. -->
     <property name="DeviceNumber" type="t" access="read"/>
 
     <!-- Id:
-         @since: 2.1
+         @since: 2.0.0
          A unique and persistent identifier for the device or blank if
          no such identifier is available.
 
@@ -889,7 +1039,7 @@
     <property name="Drive" type="o" access="read"/>
 
     <!-- MDRaid:
-         @since: 2.1
+         @since: 2.0.0
          If the block device is a running MD-RAID array, this is set
          to the #org.freedesktop.UDisks2.MDRaid object that it
          correspond to. Is '/' if no such object exists.
@@ -897,7 +1047,7 @@
     <property name="MDRaid" type="o" access="read"/>
 
     <!-- MDRaidMember:
-         @since: 2.1
+         @since: 2.0.0
          If the block device is a member of a MD-RAID array, this
          is set to the #org.freedesktop.UDisks2.MDRaid object that it
          correspond to. Is '/' if no such object exists.
@@ -1065,7 +1215,7 @@
            method.</para></listitem>
          </varlistentry>
          <varlistentry>
-           <term>opts (type <literal>'ay'</literal>)</term>
+           <term>options (type <literal>'ay'</literal>)</term>
            <listitem><para>Options</para></listitem>
          </varlistentry>
          </variablelist>
@@ -1076,9 +1226,7 @@
          reference an unexisting file in the
          <filename>/etc/luks-keys</filename> directory.
     -->
-    <property name="Configuration" type="a(sa{sv})" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="ConfigurationList"/>
-    </property>
+    <property name="Configuration" type="a(sa{sv})" access="read"/>
 
     <!-- CryptoBackingDevice:
          The #org.freedesktop.UDisks2.Block object that is
@@ -1129,7 +1277,7 @@
     <property name="HintIconName" type="s" access="read"/>
 
     <!-- HintSymbolicIconName:
-         @since: 2.1
+         @since: 2.0.0
          If not blank, the icon name to use when presenting the device using a symbolic icon.
 
          The name must adhere to the
@@ -1138,6 +1286,9 @@
          See <xref linkend="udisks.8"/> for how to influence the value of this property.
     -->
     <property name="HintSymbolicIconName" type="s" access="read"/>
+
+    <!-- UserspaceMountOptions: List of userspace mount options. -->
+    <property name="UserspaceMountOptions" type="as" access="read"/>
 
     <!--
         AddConfigurationItem:
@@ -1148,12 +1299,33 @@
 
         See the #org.freedesktop.UDisks2.Block:Configuration
         property for details about valid configuration items.
+
+        Some fields can be omitted and will then receive default
+        values.  This is useful when passing configuration items to
+        Format, for example, because the proper values are not known
+        before the formatting is done.
+
+        If 'fsname' is omitted in a 'fstab' entry, or 'device' is
+        omitted in a 'crypttab' entry, it defaults to "UUID=..." when
+        the block device has a filesystem UUID, or to the name of the
+        device in the filesystem..
+
+        If 'name' is omitted in a 'crypttab' entry, it defaults to
+        "luks-&lt;UUID&gt;".
+
+        If 'passphrase-path' is omitted, it defaults to
+        "/etc/luks-keys/&lt;NAME&gt;".
+
+        If 'track-parents' is set to true in @item, then the 'opts'
+        and 'options' fields will be augmented with "x-parent"
+        elements, as appropriate.  This will make @item appear in the
+        ChildConfiguration properties, and will allow the 'tear-down'
+        option of Format, DeletePartition, and other methods to remove
+        this item reliably.
     -->
     <method name="AddConfigurationItem">
       <arg name="item" direction="in" type="(sa{sv})"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="Configuration"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1169,8 +1341,6 @@
     <method name="RemoveConfigurationItem">
       <arg name="item" direction="in" type="(sa{sv})"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="Configuration"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1194,9 +1364,6 @@
       <arg name="old_item" direction="in" type="(sa{sv})"/>
       <arg name="new_item" direction="in" type="(sa{sv})"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="Configuration"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="Configuration"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1211,14 +1378,12 @@
     <method name="GetSecretConfiguration">
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="configuration" direction="out" type="a(sa{sv})"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="ConfigurationList"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
         Format:
         @type: The type of file system, partition table or other content to format the device with.
-        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>label</parameter> (of type 's'), <parameter>take-ownership</parameter> (of type 'b'), <parameter>encrypt.passphrase</parameter> (of type 's'), <parameter>erase</parameter> (of type 's'), <parameter>no-block</parameter> (of type 'b') and <parameter>update-partition-type</parameter> (of type 'b').
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>label</parameter> (of type 's'), <parameter>take-ownership</parameter> (of type 'b'), <parameter>encrypt.passphrase</parameter> (of type 's' or 'ay'), <parameter>encrypt.type</parameter> (of type 's'), <parameter>erase</parameter> (of type 's'), <parameter>no-block</parameter> (of type 'b') and <parameter>update-partition-type</parameter> (of type 'b').
 
         Formats the device with a file system, partition table or
         other well-known content.
@@ -1246,7 +1411,12 @@
         If the option <parameter>encrypt.passphrase</parameter> is
         given then a LUKS device is created with the given passphrase
         and the file system is created on the unlocked device. The
-        unlocked device will be left open.
+        unlocked device will be left open. This parameter can be used
+        to supply the binary contents of an arbitrary keyfile by passing
+        a value of type <quote>ay</quote>.
+        Option <parameter>encrypt.type</parameter> can be used to
+        specify encryption "technology" that will be used. Currently
+        only <quote>luks1</quote> and <quote>luks2</quote> are supported.
 
         If the option <parameter>erase</parameter> is used then the
         underlying device will be erased. Valid values include
@@ -1270,11 +1440,34 @@
         takes place but after authorization and other checks are
         done. This is useful for applications that want to format
         several devices in parallel.
+
+        If the option <parameter>dry-run-first</parameter> is set to
+        %TRUE then a dry run of the formatting command is performed
+        first, if Udisks knows how to do that.  The idea is that
+        this allows a deeper check of the parameters even when
+        <parameter>no-block</parameter> is %TRUE.
+
+        If the option <parameter>no-discard</parameter> is set to
+        %TRUE then Udisks tells the formatting utility not to issue
+        BLKDISCARD ioctls.
+
+        If the option <parameter>config-items</parameter> is set, it
+        should be an array of configuration items suitable for
+        org.freedesktop.UDisks2.Block.AddConfigurationItem.  They will
+        all be added after the formatting is done.
+
+        If the option <parameter>tear-down</parameter> is set to
+        %TRUE, then the block device and all its children will be
+        cleaned up before formatting.  This cleanup consists of
+        removing entries from /etc/fstab and /etc/crypttab, and
+        locking of encrypted block devices.  Entries in /etc/fstab and
+        /etc/crypttab that have been created with the 'track-parents'
+        options to AddConfigurationItem will be removed even if their
+        block device is currently unavailable.
     -->
     <method name="Format">
       <arg name="type" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1285,12 +1478,15 @@
         Gets a read-only file descriptor for the device intended for a
         byte-by-byte imaging of the device. This can only be done if
         the device is not already in use.
+
+        <emphasis>This method is deprecated since 2.7.3.</emphasis>
+        Use org.freedesktop.UDisks2.Block.OpenDevice() with <literal>O_EXCL</literal>
+        and <literal>O_CLOEXEC</literal> flags instead.
     -->
     <method name="OpenForBackup">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="1"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="fd" direction="out" type="h"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1301,12 +1497,16 @@
         Gets a writable file descriptor for the device intended for a
         byte-by-byte restore of a disk image onto the device. This can
         only be done if the device is not already in use.
+
+        <emphasis>This method is deprecated since 2.7.3.</emphasis>
+        Use org.freedesktop.UDisks2.Block.OpenDevice() with <literal>O_EXCL</literal>,
+        <literal>O_SYNC</literal> and <literal>O_CLOEXEC</literal> flags instead.
+
     -->
     <method name="OpenForRestore">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="1"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="fd" direction="out" type="h"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1318,17 +1518,41 @@
         used for benchmarking the device (transfer rate, access time
         etc.). Note that the file descriptor may be opened with the
         <literal>O_DIRECT</literal> and <literal>O_SYNC</literal>
-        flags so care must be taken to only perform page-aligned I/O.
+        flags so care must be taken to only perform block-aligned I/O.
 
         If the <parameter>writable</parameter> in @options is %TRUE
         then the returned file descriptor will be writable. This only
         works if the device is not already in use.
+
+        <emphasis>This method is deprecated since 2.7.3.</emphasis>
+        Use org.freedesktop.UDisks2.Block.OpenDevice() with <literal>O_DIRECT</literal>,
+        <literal>O_SYNC</literal> and <literal>O_CLOEXEC</literal> flags instead.
     -->
     <method name="OpenForBenchmark">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="1"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="fd" direction="out" type="h"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+
+    <!--
+        OpenDevice:
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>flags</parameter> (of type 'i')
+        @mode: Mode: "r" for read-only, "w" for write-only or "rw" for read-write
+        @fd: An index for the returned file descriptor.
+        @since: 2.7.3
+
+        Option <parameter>flags</parameter> can be used to specify additional flags.
+        See <literal>man 2 open</literal> for list of supported flags.
+        <literal>O_RDONLY</literal>, <literal>O_WRONLY</literal> and
+        <literal>O_RDWR</literal> are not allowed, use @mode instead.
+
+        Gets a file descriptor for the device.
+    -->
+    <method name="OpenDevice">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="1"/>
+      <arg name="mode" direction="in" type="s"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="fd" direction="out" type="h"/>
     </method>
 
     <!--
@@ -1347,7 +1571,6 @@
     -->
     <method name="Rescan">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
   </interface>
@@ -1364,6 +1587,12 @@
   <interface name="org.freedesktop.UDisks2.PartitionTable">
     <!-- prereq: org.freedesktop.UDisks2.Block -->
 
+    <!-- Partitions: List of object paths of the #org.freedesktop.UDisks2.Partition
+         objects that belongs to this partition table.
+         @since: 2.7.2
+    -->
+    <property name="Partitions" type="ao" access="read"/>
+
     <!-- Type: The type of partition table detected.
          Known values include:
          <variablelist>
@@ -1378,21 +1607,25 @@
     <!--
         CreatePartition:
         @offset: The desired offset where the partition should be created, in bytes.
-        @size: The desired size of the partition, in bytes.
+        @size: The desired size of the partition, in bytes (0 for maximal size).
         @type: The type of partition to create (cf. the #org.freedesktop.UDisks2.Partition:Type property) or blank to use the default for the partition table type and OS.
         @name: The name for the new partition or blank if the partition table do not support names.
-        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) include <parameter>partition-type</parameter> (of type 's').
         @created_partition: An object path to the created block device object implementing the #org.freedesktop.UDisks2.Partition interface.
 
         Creates a new partition.
 
         Note that the created partition won't necessarily be created
-        at the exact @offset due to disk geometry and other alignment
-        constraints (e.g. 1MiB alignment).
+        at the exact @offset but slightly behind due to disk geometry
+        and other alignment constraints (e.g. 1MiB alignment).
 
         The newly created partition may also end up being slightly
-        larger or smaller than the requested @size bytes for the same
-        reasons.
+        larger than the requested @size bytes for the same reasons.
+        The maximal size can be automatically set by using 0 as size.
+
+        For <literal>dos</literal> partition tables, the partition type can be
+        set with the @partition-type option. Possible values are: "primary",
+        "extended" or "logical".
 
         The newly created partition will be wiped of known filesystem
         signatures using the
@@ -1406,8 +1639,35 @@
       <arg name="name" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="created_partition" direction="out" type="o"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
     </method>
+
+    <!--
+        CreatePartitionAndFormat:
+        @offset: The desired offset where the partition should be created, in bytes.
+        @size: The desired size of the partition, in bytes (0 for maximal size).
+        @type: The type of partition to create (cf. the #org.freedesktop.UDisks2.Partition:Type property) or blank to use the default for the partition table type and OS.
+        @name: The name for the new partition or blank if the partition table do not support names.
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) include <parameter>partition-type</parameter> (of type 's').
+        @created_partition: An object path to the created block device object implementing the #org.freedesktop.UDisks2.Partition interface.
+        @format_type: The type to use for Format.
+        @format_options: Options for Format.
+
+        This is a combination of
+        #org.freedesktop.UDisks2.PartitionTable:CreatePartition and
+        #org.freedesktop.UDisks2.Block:Format.  After creating the
+        partition, the resulting block device is formatted.
+    -->
+    <method name="CreatePartitionAndFormat">
+      <arg name="offset" direction="in" type="t"/>
+      <arg name="size" direction="in" type="t"/>
+      <arg name="type" direction="in" type="s"/>
+      <arg name="name" direction="in" type="s"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="format_type" direction="in" type="s"/>
+      <arg name="format_options" direction="in" type="a{sv}"/>
+      <arg name="created_partition" direction="out" type="o"/>
+    </method>
+
   </interface>
 
   <!-- ********************************************************************** -->
@@ -1498,7 +1758,6 @@
     <method name="SetType">
       <arg name="type" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!-- SetName:
@@ -1510,7 +1769,6 @@
     <method name="SetName">
       <arg name="name" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!-- SetFlags:
@@ -1524,17 +1782,41 @@
     <method name="SetFlags">
       <arg name="flags" direction="in" type="t"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+    </method>
+
+    <!-- Resize:
+         @size: New partition size in bytes, 0 for maximal size.
+         @options: Options.
+         @since 2.7.2
+
+         Resizes the partition.
+
+         The partition will not change its position but might be slightly bigger
+         than requested due to sector counts and alignment (e.g. 1MiB).
+         If the requested size can't be allocated it results in an error.
+         The maximal size can automatically be set by using 0 as size.
+    -->
+    <method name="Resize">
+      <arg name="size" direction="in" type="t"/>
+      <arg name="options" direction="in" type="a{sv}"/>
     </method>
 
     <!-- Delete:
-         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+         @options: Options.
 
          Deletes the partition.
+
+         If the option <parameter>tear-down</parameter> is set to
+         %TRUE, then the block device and all its children will be
+         cleaned up before formatting.  This cleanup consists of
+         removing entries from /etc/fstab and /etc/crypttab, and
+         locking of encrypted block devices.  Entries in /etc/fstab
+         and /etc/crypttab that have been created with the
+         'track-parents' options to AddConfigurationItem will be
+         removed even if their block device is currently unavailable.
     -->
     <method name="Delete">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
   </interface>
 
@@ -1560,7 +1842,6 @@
     <method name="SetLabel">
       <arg name="label" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!-- MountPoints:
@@ -1568,9 +1849,7 @@
          the device is mounted. If the device is not mounted, this
          array is empty.
     -->
-    <property name="MountPoints" type="aay" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="QByteArrayList"/>
-    </property>
+    <property name="MountPoints" type="aay" access="read"/>
 
     <!--
         Mount:
@@ -1627,7 +1906,6 @@
     <method name="Mount">
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="mount_path" direction="out" type="s"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1643,13 +1921,82 @@
         typically results in the user having to authenticate as an
         administrator). If authorized, the filesystem is unmounted.
 
+        If the mountpoint was previously created by udisks it is
+        guaranteed it will be removed upon returning from this method
+        call.
+
         If the filesystem is busy, this operation fails with the error
         <link linkend="UDISKS-ERROR-DEVICE-BUSY:CAPS"><constant>org.freedesktop.UDisks2.Error.DeviceBusy</constant></link>
         unless the @force option is used.
     -->
     <method name="Unmount">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+
+    <!-- Size: The size of the filesystem.  This is the amount of
+         bytes used on the block device.  If this is smaller than
+         org.freedesktop.Udisks2.Block.Size, then the filesystem can
+         be made larger with Resize.
+
+         If the size is unknown, the property is zero.
+    -->
+    <property name="Size" type="t" access="read"/>
+
+    <!--
+        Resize:
+        @size: The target size in bytes, 0 for maximum.
+        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @since: 2.7.2
+
+        Resizes the filesystem.
+
+        Shrinking operations need to move data which causes this action to be
+        slow. The filesystem-resize job for the object might expose progress.
+    -->
+    <method name="Resize">
+      <arg name="size" direction="in" type="t"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- Check:
+         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+         @consistent: Whether the filesystem is undamaged.
+         @since: 2.7.2
+
+         Checks the filesystem for consistency.
+
+         Unsupported filesystems result in an error.
+    -->
+    <method name="Check">
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="consistent" direction="out" type="b"/>
+    </method>
+
+    <!-- Repair:
+         @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+         @repaired: Whether the filesystem could be successfully repaired.
+         @since: 2.7.2
+
+         Tries to repair the filesystem.
+
+         Unsupported filesystems result in an error.
+    -->
+    <method name="Repair">
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="repaired" direction="out" type="b"/>
+    </method>
+
+    <!-- TakeOwnership:
+         @options: Options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>recursive</parameter> (of type 'b').
+         @since: 2.7.2
+
+         Changes ownership of the filesystem to the UID and GID of the calling
+         user.
+
+         Filesystems that don't support ownership result in an error.
+    -->
+    <method name="TakeOwnership">
+      <arg name="options" direction="in" type="a{sv}"/>
     </method>
   </interface>
 
@@ -1676,7 +2023,6 @@
     -->
     <method name="Start">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1687,7 +2033,18 @@
     -->
     <method name="Stop">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+
+    <!--
+        SetLabel:
+        @label: The label to set.
+        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+
+        Set label for the swap device.
+    -->
+    <method name="SetLabel">
+      <arg name="label" direction="in" type="s"/>
+      <arg name="options" direction="in" type="a{sv}"/>
     </method>
   </interface>
 
@@ -1703,10 +2060,39 @@
   <interface name="org.freedesktop.UDisks2.Encrypted">
     <!-- prereq: org.freedesktop.UDisks2.Block -->
 
+    <!-- ChildConfiguration: Configuration items belonging to the
+         clear text device of this encrypted block device and its
+         children.  This is also valid when this block device is
+         currently locked and there is no clear text device for it.
+         It works via the 'track-parents' options of
+         org.freedesktop.UDisks2.Block.AddConfigurationItem(), which
+         see.
+    -->
+    <property name="ChildConfiguration" type="a(sa{sv})" access="read"/>
+
+    <!-- HintEncryptionType:
+         If not blank, the type of the encryption used to encrypt this device.
+
+         This is set during successful unlocking of an encrypted device.
+         It is required for encryption types which can only be determined
+         by decrypting the device (for example TCRYPT), but is used for all
+         encryption types for consistency reasons.
+    -->
+    <property name="HintEncryptionType" type="s" access="read"/>
+
+    <!-- MetadataSize: Size of the metadata on the encrypted device in bytes
+    -->
+    <property name="MetadataSize" type="t" access="read"/>
+
+    <!-- CleartextDevice:
+         For an unlocked device, the object path of its cleartext device.
+    -->
+    <property name="CleartextDevice" type="o" access="read"/>
+
     <!--
         Unlock:
         @passphrase: The passphrase to use.
-        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>keyfile_contents</parameter> (of type 'ay') which is preferred over @passphrase if specified and <parameter>read-only</parameter> (of type 'b').
         @cleartext_device: An object path to the unlocked object implementing the #org.freedesktop.UDisks2.Block interface.
 
         Tries to unlock the encrypted device using @passphrase.
@@ -1716,6 +2102,10 @@
         then name, options and passphrase (if available) is used from that
         file after requesting additional authorization.
 
+        If an empty passphrase should be used to unlock the device, it has to be
+        passed using the @keyfile_contents parameter. Empty string passed as
+        @passphrase means "Use the passphrase from the configuration file".
+
         If the device is removed without being locked (e.g. the user
         yanking the device or pulling the media out) the cleartext
         device will be cleaned up.
@@ -1724,7 +2114,6 @@
       <arg name="passphrase" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
       <arg name="cleartext_device" direction="out" type="o"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -1735,16 +2124,19 @@
     -->
     <method name="Lock">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
         ChangePassphrase:
         @passphrase: The existing passphrase.
         @new_passphrase: The new passphrase to use.
-        @options: Options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>old_keyfile_contents</parameter> and <parameter>new_keyfile_contents</parameter> (of type 's' or 'ay').
 
         Changes the passphrase to @new_passphrase. An existing passphrase is required.
+
+        If <parameter>old_keyfile_contents</parameter> or
+        <parameter>new_keyfile_contents</parameter> are given, they take
+        precedence over the corresponding passphrase parameters individually.
 
         If the device in question is referenced in a system-wide
         configuration file (such as the
@@ -1756,7 +2148,23 @@
       <arg name="passphrase" direction="in" type="s"/>
       <arg name="new_passphrase" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+    </method>
+
+    <!--
+        Resize:
+        @size: The target cleartext size in bytes, 0 for maximum.
+        @options: Options - known options (in addition to <link linkend="udisks-std-options">standard options</link>) includes <parameter>passphrase</parameter> (of type 's') and <parameter>keyfile_contents</parameter> (of type 'ay') which is preferred over @passphrase if specified.
+        @since: 2.8.0
+
+        Resizes the encrypted device.  The device must be unlocked.
+        The given size is the target size for the cleartext device.
+
+        You need to specify either @passphrase or @keyfile_contents for LUKS 2
+        devices that don't have verified key loaded in kernel keyring.
+    -->
+    <method name="Resize">
+      <arg name="size" direction="in" type="t"/>
+      <arg name="options" direction="in" type="a{sv}"/>
     </method>
 
   </interface>
@@ -1781,7 +2189,6 @@
     -->
     <method name="Delete">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!-- BackingFile:
@@ -1816,7 +2223,6 @@
     <method name="SetAutoclear">
       <arg name="value" direction="in" type="b"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
   </interface>
 
@@ -1825,7 +2231,7 @@
   <!--
       org.freedesktop.UDisks2.MDRaid:
       @short_description: Linux Software RAID
-      @since: 2.1
+      @since: 2.0.0
 
       Objects implementing this interface represent
       <ulink url="https://raid.wiki.kernel.org/index.php/Linux_Raid">Linux Software RAID arrays</ulink>
@@ -1877,7 +2283,7 @@
 
          This property corresponds to the
          <literal>sync_action</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="SyncAction" type="s" access="read"/>
@@ -1887,7 +2293,7 @@
 
          This property corresponds to the
          <literal>sync_completed</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="SyncCompleted" type="d" access="read"/>
@@ -1902,7 +2308,7 @@
 
          This property corresponds to the
          <literal>sync_speed</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="SyncRate" type="t" access="read"/>
@@ -1916,7 +2322,7 @@
 
          This property is based on the value of the
          <literal>sync_speed</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="SyncRemainingTime" type="t" access="read"/>
@@ -1926,7 +2332,7 @@
 
          This property corresponds to the
          <literal>degraded</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="Degraded" type="u" access="read"/>
@@ -1934,12 +2340,12 @@
     <!-- BitmapLocation:
          The location of a write-intent bitmap (empty if the array is not running), if any.
 
-         If the RAID array does not suppor write-intent bitmaps (for
+         If the RAID array does not support write-intent bitmaps (for
          example RAID-0 arrays), this is empty.
 
          This property corresponds to the
          <literal>bitmap/location</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="BitmapLocation" type="ay" access="read"/>
@@ -1949,7 +2355,7 @@
 
          This property corresponds to the
          <literal>chunk_size</literal> sysfs file, see the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
     <property name="ChunkSize" type="t" access="read"/>
@@ -1975,12 +2381,26 @@
          This property correspond to the
          <filename>/sys/block/mdN/md/dev-*</filename> directories in sysfs and the sysfs files in each directory.
          See the
-         <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+         <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
          file shipped with the kernel sources.
     -->
-    <property name="ActiveDevices" type="a(oiasta{sv})" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantList"/>
-    </property>
+    <property name="ActiveDevices" type="a(oiasta{sv})" access="read"/>
+
+    <!-- ChildConfiguration: Configuration items belonging to the
+         block devices of this array (recursively).  This is also
+         valid when the array is stopped and there are no actual block
+         devices for it.  It works via the 'track-parents' options of
+         org.freedesktop.UDisks2.Block.AddConfigurationItem(), which
+         see.
+    -->
+    <property name="ChildConfiguration" type="a(sa{sv})" access="read"/>
+
+    <!-- Running: Whether or not the array is considered running.
+
+         It is an error to call Start on a running array, and Stop on
+         a non-running array, for example.
+    -->
+    <property name="Running" type="b" access="read"/>
 
     <!--
         Start:
@@ -1994,7 +2414,6 @@
     -->
     <method name="Start">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -2005,7 +2424,6 @@
     -->
     <method name="Stop">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -2026,7 +2444,6 @@
     <method name="RemoveDevice">
       <arg name="device" direction="in" type="o"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -2039,7 +2456,6 @@
     <method name="AddDevice">
       <arg name="device" direction="in" type="o"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -2052,7 +2468,6 @@
     <method name="SetBitmapLocation">
       <arg name="value" direction="in" type="ay"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -2069,13 +2484,30 @@
 
         This method call is similar to writing to the
         <literal>sync_action</literal> sysfs file, see the
-        <filename><ulink url="http://www.kernel.org/doc/Documentation/md.txt">Documentation/md.txt</ulink></filename>
+        <filename><ulink url="https://www.kernel.org/doc/Documentation/admin-guide/md.rst">Documentation/admin-guide/md.rst</ulink></filename>
         file shipped with the kernel sources.
     -->
     <method name="RequestSyncAction">
       <arg name="sync_action" direction="in" type="s"/>
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+    </method>
+
+    <!-- Delete:
+         @options: Options.
+
+         Stops the RAID array and destroys all RAID metadata on member devices.
+
+         If the option <parameter>tear-down</parameter> is set to
+         %TRUE, then the RAID array block device and all its children
+         will be cleaned up before stopping.  This cleanup consists of
+         removing entries from /etc/fstab and /etc/crypttab, and
+         locking of encrypted block devices.  Entries in /etc/fstab
+         and /etc/crypttab that have been created with the
+         'track-parents' options to AddConfigurationItem will be
+         removed even if their block device is currently unavailable.
+    -->
+    <method name="Delete">
+      <arg name="options" direction="in" type="a{sv}"/>
     </method>
 
   </interface>
@@ -2092,7 +2524,7 @@
       org.freedesktop.UDisks2.Block.Format() method that is used to
       format a block device.
 
-      When such operations are initated, a job object implementing
+      When such operations are initiated, a job object implementing
       this interface may be created so the progress can be tracked by
       the caller (and also other observers).
 
@@ -2122,7 +2554,8 @@
       the D-Bus method used to initiate the operation to return,
       usually returning the
       <literal>org.freedesktop.UDisks2.Error.Cancelled</literal>
-      error.
+      error. Once cancellation is requested it may take some time before
+      the job is actually completed as there might be ongoing I/O.
   -->
   <interface name="org.freedesktop.UDisks2.Job">
 
@@ -2141,16 +2574,22 @@
              <listitem><para>Locking encrypted device.</para></listitem></varlistentry>
            <varlistentry><term>encrypted-modify</term>
              <listitem><para>Modifying encrypted device.</para></listitem></varlistentry>
+           <varlistentry><term>encrypted-resize</term>
+             <listitem><para>Resizing encrypted device.</para></listitem></varlistentry>
            <varlistentry><term>swapspace-start</term>
              <listitem><para>Starting swapspace.</para></listitem></varlistentry>
            <varlistentry><term>swapspace-stop</term>
              <listitem><para>Stopping swapspace.</para></listitem></varlistentry>
+           <varlistentry><term>swapspace-modify</term>
+             <listitem><para>Modifying swapspace.</para></listitem></varlistentry>
            <varlistentry><term>filesystem-mount</term>
              <listitem><para>Mounting a filesystem.</para></listitem></varlistentry>
            <varlistentry><term>filesystem-unmount</term>
              <listitem><para>Unmounting a filesystem.</para></listitem></varlistentry>
            <varlistentry><term>filesystem-modify</term>
              <listitem><para>Modifying a filesystem.</para></listitem></varlistentry>
+           <varlistentry><term>filesystem-resize</term>
+             <listitem><para>Resizing a filesystem.</para></listitem></varlistentry>
            <varlistentry><term>format-erase</term>
              <listitem><para>Erasing a device.</para></listitem></varlistentry>
            <varlistentry><term>format-mkfs</term>
@@ -2197,7 +2636,7 @@
     <property name="ProgressValid" type="b" access="read"/>
 
     <!-- Bytes:
-         @since: 2.1
+         @since: 2.0.0
          If the job involves processing a known number of bytes (for
          example, erasing a disk), this property contains the total
          number of bytes to process. If not, the value of this
@@ -2209,7 +2648,7 @@
     <property name="Bytes" type="t" access="read"/>
 
     <!-- Rate:
-         @since: 2.1
+         @since: 2.0.0
          If the job involves processing a number of bytes (for
          example, erasing) and the rate at which the processing takes
          place is known, this property contains the rate (measured in
@@ -2256,7 +2695,6 @@
     -->
     <method name="Cancel">
       <arg name="options" direction="in" type="a{sv}"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!-- Cancelable: Whether the job can be canceled. -->

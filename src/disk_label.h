@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Rafael Sadowski <rafael@sizeofvoid.org>
+ * Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,23 +18,29 @@
 
 #pragma once
 
+#include "drive.h"
 #include <QObject>
 #include <QString>
 
-class DiskLabel : public QObject {
-    Q_OBJECT
+/**
+ * disklabel – read disk pack label
+ */
+class DiskLabel {
 public:
     DiskLabel() = default;
     DiskLabel(const QString&);
 
-    QStringList const& getDevicePartitions() const;
-    QString const& getDeviceName() const;
     bool isValid() const;
+    TDrive getDrive() const;
+    QString getDeviceName() const;
 
 private:
-    void analyseDev();
-    QString m_deviceName;
-    QStringList m_devicePartitions;
+    void analyseDev(const QString&);
+    void createDrive(const QString&);
+    void createBlock(const QString&, const QString&);
+    bool isValidFileSysetem(u_int8_t) const;
+
+    TDrive m_drive = nullptr;
 };
 
 using TDiskLabel = std::shared_ptr<DiskLabel>;

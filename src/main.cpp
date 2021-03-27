@@ -1,5 +1,6 @@
 /*
     Copyright 2016 Gleb Popov <6yearold@gmail.com>
+    Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
@@ -24,11 +25,6 @@
     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <QSet>
-
-#include <stdarg.h>
-#include <sysexits.h>
-#include <syslog.h>
 
 #include "adaptors.h"
 #include "block.h"
@@ -38,50 +34,62 @@
 #include "manageradaptor.h"
 #include "objectmanager.h"
 
-ObjectManager manager;
-BsdisksConfig config;
+#include <iostream>
+#include <syslog.h>
 
-BsdisksConfig& BsdisksConfig::get()
-{
-    return config;
-}
+#include <QSet>
+
+
+ObjectManager manager;
 
 /* Initialized in main */
-static QtMessageHandler old_message_handler = NULL;
 static bool syslog_output;
-static bool no_debug;
+static bool debug;
+static bool verbose;
 
-static void message_handler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+static void msg_handler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-    if (syslog_output) {
-        QByteArray local_msg = msg.toLocal8Bit();
-        switch (type) {
-        case QtDebugMsg:
-            syslog(LOG_DEBUG | LOG_DAEMON, "%s\n", local_msg.constData());
-            break;
-        case QtInfoMsg:
-            syslog(LOG_INFO | LOG_DAEMON, "%s\n", local_msg.constData());
-            break;
-        case QtWarningMsg:
-            syslog(LOG_WARNING | LOG_DAEMON, "%s\n", local_msg.constData());
-            break;
-        case QtCriticalMsg:
-            /* Tone it down a bit here */
-            syslog(LOG_ERR | LOG_DAEMON, "%s\n", local_msg.constData());
-            break;
-        case QtFatalMsg:
-            /* Tone it down a bit here */
-            syslog(LOG_CRIT | LOG_DAEMON, "%s\n", local_msg.constData());
-            break;
-        }
-    }
 
-    if ((old_message_handler != NULL) && !no_debug)
-        (*old_message_handler)(type, context, msg);
+    auto printMsg = [&](int priority, const char* state, const char* message) {
+        if (syslog_output) {
+            syslog(LOG_DEBUG | LOG_DAEMON, "%s\n", message);
+        }
+        else {
+            if (verbose) {
+                const char* file = context.file ? context.file : "";
+                std::clog << state << ": " << message << "(" << file << ":" <<
+                    context.line << ")" << "\n";
+            }
+            else {
+                std::clog << state << ": " <<message << "\n";
+            }
+        }
+    };
+
+    switch (type) {
+    case QtDebugMsg:
+        if (debug)
+            printMsg(LOG_DEBUG, "Debug", msg.toLocal8Bit());
+        break;
+    case QtInfoMsg:
+        printMsg(LOG_INFO, "Info", msg.toLocal8Bit());
+        break;
+    case QtWarningMsg:
+        printMsg(LOG_WARNING, "Warning", msg.toLocal8Bit());
+        break;
+    case QtCriticalMsg:
+        printMsg(LOG_ERR, "Critical", msg.toLocal8Bit());
+        break;
+    case QtFatalMsg:
+        printMsg(LOG_CRIT, "Fatal", msg.toLocal8Bit());
+        break;
+    }
 }
 
 int main(int argc, char** argv)
 {
+    qInstallMessageHandler(msg_handler);
+
     qRegisterMetaType<Configuration>();
     qRegisterMetaType<ConfigurationList>();
     qRegisterMetaType<QVariantMapMap>();
@@ -109,9 +117,6 @@ int main(int argc, char** argv)
 
             if (parsed[0].trimmed().startsWith('#'))
                 continue;
-
-            if (parsed[0].trimmed() == QStringLiteral("mount_msdosfs_flags"))
-                BsdisksConfig::get().MountMsdosfsFlags = parsed[1].trimmed();
         } while (!line.isEmpty());
     }
     configFile.close();
@@ -121,19 +126,23 @@ int main(int argc, char** argv)
 
     if (!QDBusConnection::systemBus().registerService("org.freedesktop.UDisks2")) {
         qCritical() << "Could not register UDisks2 service";
-        return EX_UNAVAILABLE;
+        return -1;
     }
 
-    syslog_output = QCoreApplication::arguments().contains("--syslog-output");
-    no_debug = QCoreApplication::arguments().contains("--no-debug");
-    old_message_handler = qInstallMessageHandler(&message_handler);
+    syslog_output = QCoreApplication::arguments().contains("--syslog");
+    if (syslog_output)
+        setprogname("openbsdisks2");
+
+    debug = QCoreApplication::arguments().contains("--debug") ||
+        QCoreApplication::arguments().contains("-d");
+
+    verbose =QCoreApplication::arguments().contains("--verbose") ||
+        QCoreApplication::arguments().contains("-v");
 
     new ObjectManagerAdaptor(&manager);
 
     QThreadPool::globalInstance()->setExpiryTimeout(-1);
     QThreadPool::globalInstance()->setMaxThreadCount(4);
-
-    manager.initialProbe();
 
     QDBusConnection::systemBus().registerObject(
         "/org/freedesktop/UDisks2", &manager);
@@ -141,11 +150,12 @@ int main(int argc, char** argv)
     DiskThread disk;
     QObject::connect(&disk, &DiskThread::deviceAdded,
         &manager, &ObjectManager::addDrive);
+
     QObject::connect(&disk, &DiskThread::blockAdded,
         &manager, &ObjectManager::addBlock);
 
-    QObject::connect(&disk, &DiskThread::blockRemoved,
-        &manager, &ObjectManager::removeBlock);
+    QObject::connect(&disk, &DiskThread::deviceRemoved,
+        &manager, &ObjectManager::removeDrive);
 
     disk.start();
 
