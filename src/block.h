@@ -48,7 +48,11 @@ public:
     Block() = default;
 
     const QDBusObjectPath getDbusPath() const;
+
     QString getName() const;
+
+    void setRegistered(bool);
+    bool isUnregistered() const;
 
     //XXX
     QString description;
@@ -59,8 +63,6 @@ public:
     std::bitset<2> probesDone;
 
     bool needsAnotherProbe = false;
-
-    bool registered = false;
 
     bool hasNoDrive = false;
 
@@ -188,6 +190,7 @@ public slots:
 
 private:
     const QString m_Name;
+
     const QDBusObjectPath m_dbusPath;
 
     // org.freedesktop.UDisks2.Partition — Block device representing a partition
@@ -198,6 +201,9 @@ private:
     //org.freedesktop.UDisks2.Swapspace — Block device containing swap data
     //org.freedesktop.UDisks2.Encrypted — Block device containing encrypted data
     //org.freedesktop.UDisks2.Loop — Block device backed by a file
+
+    bool registered = false;
+
 };
 
 using TBlock = std::shared_ptr<Block>;

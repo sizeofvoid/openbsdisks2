@@ -107,9 +107,7 @@ bool ObjectManager::registerBlock(const TBlock& block, bool tryPostponed)
 {
     qDebug() << "RegisterBlock blockObjects :" << m_blockObjects.size();
 
-    if (!block->registered) {
-        block->registered = true;
-
+    if (block->isUnregistered()) {
         QString devPath = block->getDbusPath().path();
 
         QList<std::pair<QString, QDBusAbstractAdaptor*>> interfaces;
@@ -132,6 +130,7 @@ bool ObjectManager::registerBlock(const TBlock& block, bool tryPostponed)
 
         addInterfaces(block->getDbusPath(), interfaces);
         qInfo() << "Registering: " + devPath;
+        block->setRegistered(true);
         QDBusConnection::systemBus().registerObject(devPath, block.get());
     }
     return true;

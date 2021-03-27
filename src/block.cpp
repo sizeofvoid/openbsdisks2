@@ -51,6 +51,18 @@ Block::getName() const
     return m_Name;
 }
 
+void
+Block::setRegistered(bool reg)
+{
+    registered = reg;
+}
+
+bool
+Block::isUnregistered() const
+{
+    return !registered;
+}
+
 void Block::addPartition(const TBlockPartition& partition)
 {
     m_Partition = partition;

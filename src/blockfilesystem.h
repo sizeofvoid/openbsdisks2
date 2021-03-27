@@ -41,8 +41,6 @@ public:
 
     QString filesystem;
     QByteArrayList mountPoints;
-    QString zfsDataset;
-    QString zfsMountpoint;
 
 private:
     void signalMountPointsChanged();
