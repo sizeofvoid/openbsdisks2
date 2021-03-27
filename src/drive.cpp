@@ -136,28 +136,3 @@ QString Drive::connectionBus() const
 {
     return QString();
 }
-
-bool Drive::bsdisks_IsHotpluggableR() const
-{
-    return false;
-}
-
-QString Drive::bsdisks_ConnectionBusR() const
-{
-    /*
-    switch (transport) {
-    case CAM_TR_ATA:
-        return QStringLiteral("ata");
-    case CAM_TR_SCSI:
-        return QStringLiteral("scsi");
-    default:
-        return QString();
-    }
-    */
-    return QString();
-}
-
-QString Drive::bsdisks_AtaSataR() const
-{
-    return ataSata;
-}

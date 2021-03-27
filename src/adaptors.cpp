@@ -444,22 +444,6 @@ QString DriveAdaptor::wWN() const
     return qvariant_cast<QString>(parent()->property("WWN"));
 }
 
-bool DriveAdaptor::bsdisks_IsHotpluggableR() const
-{
-    // get the value of property WWN
-    return qvariant_cast<bool>(parent()->property("bsdisks_IsHotpluggable"));
-}
-QString DriveAdaptor::bsdisks_ConnectionBusR() const
-{
-    // get the value of property WWN
-    return qvariant_cast<QString>(parent()->property("bsdisks_ConnectionBus"));
-}
-QString DriveAdaptor::bsdisks_AtaSataR() const
-{
-    // get the value of property WWN
-    return qvariant_cast<QString>(parent()->property("bsdisks_AtaSata"));
-}
-
 void DriveAdaptor::Eject(const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Drive.Eject

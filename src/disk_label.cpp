@@ -53,6 +53,8 @@ void DiskLabel::analyseDev(const QString& dev)
     }
 
     createDrive(dev);
+    m_drive->description = QString(lab.d_packname);
+    //m_drive->identifier;
 
     const u_int64_t blockSize = DL_GETDSIZE(&lab);
 

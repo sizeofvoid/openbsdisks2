@@ -55,17 +55,12 @@ class Drive : public QObject,
 public:
     Drive() = default;
     Drive(const QString&);
-    ~Drive()
-    {
-        qDebug() << "~Drive";
-    };
 
     const QDBusObjectPath getDbusPath() const;
 
     QString description;
     QString identifier;
-    bool isRemovable;
-    QString ataSata;
+    bool isRemovable = false;
 
     QString getDeviceName() const;
 
@@ -99,15 +94,6 @@ public:
 
     Q_PROPERTY(QString ConnectionBus READ connectionBus)
     QString connectionBus() const;
-
-    Q_PROPERTY(bool bsdisks_IsHotpluggable READ bsdisks_IsHotpluggableR)
-    bool bsdisks_IsHotpluggableR() const;
-
-    Q_PROPERTY(QString bsdisks_ConnectionBus READ bsdisks_ConnectionBusR)
-    QString bsdisks_ConnectionBusR() const;
-
-    Q_PROPERTY(QString bsdisks_AtaSata READ bsdisks_AtaSataR)
-    QString bsdisks_AtaSataR() const;
 
 public slots:
     void Eject(const QVariantMap& options);
