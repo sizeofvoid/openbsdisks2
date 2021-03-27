@@ -46,10 +46,6 @@ class Block : public QObject,
 public:
     Block(const QString&);
     Block() = default;
-    ~Block()
-    {
-        qDebug() << "~Block";
-    };
 
     const QDBusObjectPath getDbusPath() const;
     QString getName() const;

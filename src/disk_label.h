@@ -36,9 +36,12 @@ public:
 
 private:
     void analyseDev(const QString&);
-    void createDrive(const QString&);
-    void createBlock(const QString&, const QString&);
     bool isValidFileSysetem(u_int8_t) const;
+
+    void createDrive(const QString&);
+    TBlock createBlock(const QString&, const QString&, u_int64_t);
+    TBlockPartition createPartition(const QString&, u_int64_t);
+    TBlockFilesystem createFilesystem(const TBlock&, const QString&);
 
     TDrive m_drive = nullptr;
 };

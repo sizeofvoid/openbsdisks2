@@ -89,14 +89,7 @@ QString Block::id() const
 
 QString Block::idLabel() const
 {
-    /*
-    if (m_Filesystem && m_Filesystem->filesystem == "zfs")
-        return m_Filesystem->zfsDataset;
-        */
-
-    return labels.empty()
-        ? QString()
-        : QUrl::fromPercentEncoding(labels[0].mid(labels[0].lastIndexOf('/') + 1).toLatin1());
+    return getName();
 }
 
 QString Block::driveName() const
@@ -163,7 +156,7 @@ bool Block::hintIgnore() const
 
 QString Block::hintName() const
 {
-    return idLabel();
+    return getName();
 }
 
 QByteArrayList Block::mountPoints() const

@@ -26,9 +26,14 @@
 
 #include "blockpartition.h"
 
+BlockPartition::BlockPartition(const QString& name)
+    : m_name(name)
+{
+}
+
 QString BlockPartition::name() const
 {
-    return QString();
+    return m_name;
 }
 
 void BlockPartition::addFilesystem(const TBlockFilesystem& fs)
