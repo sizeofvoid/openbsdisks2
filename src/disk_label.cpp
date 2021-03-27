@@ -64,9 +64,8 @@ void DiskLabel::analyseDev(const QString& dev)
             QString p('a' + i);
             if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
-                    const QString dev(getDeviceName() + p);
 
-                    auto block = createBlock(dev + p, QString(fstypesnames[pp->p_fstype]), blockSize);
+                    auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
                     auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));
                     auto partition  = createPartition(p, DL_GETPSIZE(pp));
 
