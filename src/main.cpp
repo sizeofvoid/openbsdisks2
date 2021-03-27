@@ -102,25 +102,6 @@ int main(int argc, char** argv)
     qDBusRegisterMetaType<QVariantMapMap>();
     qDBusRegisterMetaType<DBUSManagerStruct>();
 
-    QFile configFile("/etc/bsdisks.conf");
-    configFile.open(QIODevice::ReadOnly);
-
-    if (configFile.isOpen()) {
-        QByteArray line;
-        do {
-            line = configFile.readLine(1024);
-            QString statement = QString::fromLocal8Bit(line).trimmed();
-            QStringList parsed = statement.split('=');
-
-            if (parsed.size() < 2)
-                continue;
-
-            if (parsed[0].trimmed().startsWith('#'))
-                continue;
-        } while (!line.isEmpty());
-    }
-    configFile.close();
-
     QCoreApplication::setSetuidAllowed(true);
     QCoreApplication app(argc, argv);
 

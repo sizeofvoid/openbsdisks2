@@ -1,4 +1,0 @@
-# Additional flags to pass when calling mount_msdosfs
-# Widely used value for Russia:
-# mount_msdosfs_flags = -D cp1251 -L ru_RU.UTF-8
-mount_msdosfs_flags =

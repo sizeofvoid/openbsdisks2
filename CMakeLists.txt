@@ -61,25 +61,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.freedesktop.UDisks2.service
     DESTINATION share/dbus-1/system-services
 )
 install(FILES org.freedesktop.UDisks2.conf
-    DESTINATION /etc/dbus-1/system.d
-)
-
-install(FILES bsdisks.conf.sample
-    DESTINATION etc/
-)
-
-install(FILES bsdisks-syslog.conf.sample
-    DESTINATION etc/syslog.d/
-)
-install(FILES bsdisks-newsyslog.conf.sample
-    DESTINATION etc/newsyslog.conf.d/
-)
-
-install(FILES bsdisks.8
-    DESTINATION man/man8/
-)
-install(FILES bsdisks.conf.5
-    DESTINATION man/man5/
+    DESTINATION share/dbus-1/system.d
 )
 
 if(INSTALL_POLKIT_RULES)
