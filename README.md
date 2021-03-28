@@ -14,7 +14,7 @@ The sourcecode based on commit [3d3439348ba00ae972e146c5bf28cb42949e24f](https:/
  - [ ] cd(4) support
  - [ ] mount(2), umount(2) support
  - [ ] Privilege separation
- - [] Device information updates
+ - [ ] Device information updates
 
 ## UDisks2
 
