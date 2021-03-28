@@ -135,6 +135,5 @@ int main(int argc, char** argv)
         &manager, &ObjectManager::removeDrive);
 
     disk.start();
-
     app.exec();
 }

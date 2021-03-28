@@ -64,7 +64,7 @@ void DiskLabel::analyseDev(const QString& dev)
     m_drive->setVendor(QString(lab.d_packname));
     m_drive->setSize(blockSize);
 
-    QString sduid = QString::asprintf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+    const QString sduid = QString::asprintf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
         lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
         lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
 
