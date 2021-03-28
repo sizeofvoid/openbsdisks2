@@ -27,8 +27,8 @@
 #include <sys/stat.h>
 
 #include <QByteArrayList>
-#include <QFileInfo>
 #include <QDebug>
+#include <QFileInfo>
 
 #include "block.h"
 #include "bsdisks.h"
@@ -72,14 +72,12 @@ void Block::setIdUsage(const QString& usage)
     m_IdType = usage;
 }
 
-void
-Block::setRegistered(bool reg)
+void Block::setRegistered(bool reg)
 {
     m_Registered = reg;
 }
 
-bool
-Block::isUnregistered() const
+bool Block::isUnregistered() const
 {
     return !m_Registered;
 }

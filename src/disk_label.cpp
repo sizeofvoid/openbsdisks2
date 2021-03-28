@@ -57,8 +57,8 @@ void DiskLabel::analyseDev(const QString& dev)
 
     createDrive(dev);
     const QUuid duid(0x0, 0x0, 0x0,
-                     lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
-                     lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
+        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
     m_drive->setId(QString(specname).replace("/dev/", "dev_"));
     m_drive->setDuid(duid);
     m_drive->setVendor(QString(lab.d_packname));
@@ -75,7 +75,7 @@ void DiskLabel::analyseDev(const QString& dev)
 
                     auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
                     auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));
-                    auto partition  = createPartition(p, DL_GETPSIZE(pp));
+                    auto partition = createPartition(p, DL_GETPSIZE(pp));
 
                     partition->addFilesystem(fs);
                     block->addPartition(partition);

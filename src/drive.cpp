@@ -65,7 +65,6 @@ void Drive::setRemovable(bool r)
     isRemovable = r;
 }
 
-
 void Drive::addBlock(const TBlock& block)
 {
     qDebug() << "Disk " << getDeviceName() << " add block: " << block->getName();
@@ -139,20 +138,17 @@ QString Drive::id() const
     return m_Id;
 }
 
-
 QString Drive::serial() const
 {
     return m_Duid.toString();
 }
 
-void
-Drive::setSize(qulonglong s)
+void Drive::setSize(qulonglong s)
 {
     size = s;
 }
 
-void
-Drive::setDuid(const QUuid& duid)
+void Drive::setDuid(const QUuid& duid)
 {
     m_Duid = duid;
 }

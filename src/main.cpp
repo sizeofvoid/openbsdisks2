@@ -25,7 +25,6 @@
     ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #include "adaptors.h"
 #include "block.h"
 #include "bsdisks.h"
@@ -38,7 +37,6 @@
 #include <syslog.h>
 
 #include <QSet>
-
 
 ObjectManager manager;
 
@@ -57,11 +55,11 @@ static void msg_handler(QtMsgType type, const QMessageLogContext& context, const
         else {
             if (verbose) {
                 const char* file = context.file ? context.file : "";
-                std::clog << state << ": " << message << "(" << file << ":" <<
-                    context.line << ")" << "\n";
+                std::clog << state << ": " << message << "(" << file << ":" << context.line << ")"
+                          << "\n";
             }
             else {
-                std::clog << state << ": " <<message << "\n";
+                std::clog << state << ": " << message << "\n";
             }
         }
     };
@@ -114,11 +112,9 @@ int main(int argc, char** argv)
     if (syslog_output)
         setprogname("openbsdisks2");
 
-    debug = QCoreApplication::arguments().contains("--debug") ||
-        QCoreApplication::arguments().contains("-d");
+    debug = QCoreApplication::arguments().contains("--debug") || QCoreApplication::arguments().contains("-d");
 
-    verbose =QCoreApplication::arguments().contains("--verbose") ||
-        QCoreApplication::arguments().contains("-v");
+    verbose = QCoreApplication::arguments().contains("--verbose") || QCoreApplication::arguments().contains("-v");
 
     new ObjectManagerAdaptor(&manager);
 

@@ -31,9 +31,9 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
+#include <QDebug>
 #include <QDir>
 #include <QProcess>
-#include <QDebug>
 
 #include <sys/mount.h>
 #include <sys/param.h>

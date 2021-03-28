@@ -85,7 +85,6 @@ public:
     QString id() const;
     void setId(const QString&);
 
-
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
 
