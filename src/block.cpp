@@ -1,5 +1,6 @@
 /*
     Copyright 2016 Gleb Popov <6yearold@gmail.com>
+    Copyright 2021 Rafael Sadowski <rafael@sizeofvoid.org>
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
@@ -27,6 +28,7 @@
 #include <sys/stat.h>
 
 #include <QByteArrayList>
+#include <QDebug>
 #include <QFileInfo>
 
 #include "block.h"
@@ -49,6 +51,38 @@ QString
 Block::getName() const
 {
     return m_Name;
+}
+
+QString
+Block::getIdType() const
+{
+    return m_IdType;
+}
+
+void Block::setIdType(const QString& id)
+{
+    m_IdType = id;
+}
+
+QString
+Block::getIdUsage() const
+{
+    return m_IdUsage;
+}
+
+void Block::setIdUsage(const QString& usage)
+{
+    m_IdType = usage;
+}
+
+void Block::setRegistered(bool reg)
+{
+    m_Registered = reg;
+}
+
+bool Block::isUnregistered() const
+{
+    return !m_Registered;
 }
 
 void Block::addPartition(const TBlockPartition& partition)
@@ -75,37 +109,32 @@ Block::getPartitionTable() const
 
 QString Block::id() const
 {
-    if (getPartitionTable()) {
-        auto tableType = getPartitionTable()->tableType();
-        QChar partitionSymbol = tableType == QStringLiteral("gpt")
-            ? 'p'
-            : 's';
-        return partitionSymbol;
-        // XXX return getPartitionTable()->id() + "_" + getName().mid(getName().lastIndexOf(partitionSymbol));
-    }
-    else
-        return description + "_" + identifier;
+    if (!m_Id.isEmpty())
+        return QLatin1String("by-uuid-") + m_Id;
+    if (!m_IdLabel.isEmpty())
+        return QLatin1String("by-label-") + m_IdLabel;
+    return getName();
+}
+
+void Block::setId(const QString& id)
+{
+    m_Id = id;
 }
 
 QString Block::idLabel() const
 {
-    /*
-    if (m_Filesystem && m_Filesystem->filesystem == "zfs")
-        return m_Filesystem->zfsDataset;
-        */
+    if (!getName().isEmpty() && !m_IdLabel.isEmpty())
+        return getName() + " - " + m_IdLabel;
+    return getName();
+}
 
-    return labels.empty()
-        ? QString()
-        : QUrl::fromPercentEncoding(labels[0].mid(labels[0].lastIndexOf('/') + 1).toLatin1());
+void Block::setIdLabel(const QString& idl)
+{
+    m_IdLabel = idl;
 }
 
 QString Block::driveName() const
 {
-    /*
-    if (getPartition())
-        return getPartitionTable()->driveName();
-        */
-
     return getName();
 }
 
@@ -116,9 +145,9 @@ QDBusObjectPath Block::drive() const
 
 QByteArray Block::preferredDevice() const
 {
-    if (labels.empty())
+    if (m_Lavels.empty())
         return device();
-    return (QStringLiteral("/dev/") + labels[0]).toLocal8Bit() + '\0';
+    return (QStringLiteral("/dev/") + m_Lavels[0]).toLocal8Bit() + '\0';
 }
 
 QByteArray Block::device() const
@@ -129,41 +158,33 @@ QByteArray Block::device() const
 qulonglong Block::deviceNumber() const
 {
     struct stat st;
-
     ::stat((QStringLiteral("/dev/") + getName()).toLocal8Bit().constData(), &st);
     return st.st_rdev;
 }
 
 QByteArrayList Block::symlinks()
 {
-    QByteArrayList r;
-    foreach (auto s, labels)
-        r << (QStringLiteral("/dev/") + s).toLocal8Bit() + '\0';
-    return r;
+    return {};
 }
 
-qulonglong Block::blockSize() const
+qulonglong Block::getSize() const
 {
-    return getPartition() ? m_Partition->size : size;
+    return m_Size;
+}
+
+void Block::setSize(qulonglong size)
+{
+    m_Size = size;
 }
 
 bool Block::hintIgnore() const
 {
-    if (getPartition()) {
-        // there should be better predicate for this, probably
-        // right now ignore efi partitions on ada/ad, these usually contain bootloader
-        // stuff and not needed to be mounted by regular user
-        QFileInfo devInfo(device());
-        if (getPartition()->partitionType == "efi" && devInfo.fileName().startsWith("ad"))
-            return true;
-    }
-
     return false;
 }
 
 QString Block::hintName() const
 {
-    return idLabel();
+    return getName();
 }
 
 QByteArrayList Block::mountPoints() const
@@ -176,7 +197,6 @@ QByteArrayList Block::mountPoints() const
 
         return r;
     }
-
     return QByteArrayList();
 }
 
@@ -233,5 +253,5 @@ QDBusObjectPath Block::table() const
     if (!getPartition())
         return QDBusObjectPath("/");
 
-    return dbusPath;
+    return m_dbusPath;
 }

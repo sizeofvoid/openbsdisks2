@@ -31,7 +31,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusObjectPath>
-#include <QProcess>
+#include <QUuid>
 
 #include "bsdisks.h"
 #include "drive.h"
@@ -54,6 +54,17 @@ Drive::getDeviceName() const
 {
     return m_deviceName;
 }
+
+void Drive::setVendor(const QString& vendor)
+{
+    m_Vendor = vendor;
+}
+
+void Drive::setRemovable(bool r)
+{
+    isRemovable = r;
+}
+
 void Drive::addBlock(const TBlock& block)
 {
     qDebug() << "Disk " << getDeviceName() << " add block: " << block->getName();
@@ -109,7 +120,7 @@ QStringList Drive::mediaCompatibility() const
 
 QString Drive::vendor() const
 {
-    return description;
+    return m_Vendor;
 }
 
 qulonglong Drive::driveSize() const
@@ -117,9 +128,29 @@ qulonglong Drive::driveSize() const
     return size;
 }
 
+void Drive::setId(const QString& id)
+{
+    m_Id = id;
+}
+
+QString Drive::id() const
+{
+    return m_Id;
+}
+
 QString Drive::serial() const
 {
-    return identifier;
+    return m_Duid.toString();
+}
+
+void Drive::setSize(qulonglong s)
+{
+    size = s;
+}
+
+void Drive::setDuid(const QUuid& duid)
+{
+    m_Duid = duid;
 }
 
 bool Drive::ejectable() const
@@ -132,32 +163,12 @@ bool Drive::removable() const
     return isRemovable;
 }
 
+bool Drive::mediaRemovable() const
+{
+    return optical() || removable();
+}
+
 QString Drive::connectionBus() const
 {
     return QString();
-}
-
-bool Drive::bsdisks_IsHotpluggableR() const
-{
-    return false;
-}
-
-QString Drive::bsdisks_ConnectionBusR() const
-{
-    /*
-    switch (transport) {
-    case CAM_TR_ATA:
-        return QStringLiteral("ata");
-    case CAM_TR_SCSI:
-        return QStringLiteral("scsi");
-    default:
-        return QString();
-    }
-    */
-    return QString();
-}
-
-QString Drive::bsdisks_AtaSataR() const
-{
-    return ataSata;
 }

@@ -32,6 +32,7 @@
 #include <QChar>
 #include <QDebug>
 #include <QString>
+#include <QUuid>
 
 DiskLabel::DiskLabel(const QString& dev)
 {
@@ -52,17 +53,39 @@ void DiskLabel::analyseDev(const QString& dev)
         return;
     }
 
+    const u_int64_t blockSize = DL_GETDSIZE(&lab);
+
     createDrive(dev);
+    const QUuid duid(0x0, 0x0, 0x0,
+        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
+        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+    m_drive->setId(QString(specname).replace("/dev/", "dev_"));
+    m_drive->setDuid(duid);
+    m_drive->setVendor(QString(lab.d_packname));
+    m_drive->setSize(blockSize);
+
+    const QString sduid = QString::asprintf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
+        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
 
     struct disklabel::partition* pp = nullptr;
 
     for (int i = 0; i < lab.d_npartitions; i++) {
         pp = &lab.d_partitions[i];
-        if (DL_GETPSIZE(pp)) {
-            QChar p('a' + i);
-            if (p != QChar('c')) {
+        if (DL_GETPSIZE(pp) > 0) {
+            QString p('a' + i);
+            if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
-                    createBlock(QString(p), QString(fstypesnames[pp->p_fstype]));
+
+                    auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
+                    block->setId(sduid + p);
+                    block->setIdLabel(lab.d_packname);
+                    auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));
+                    auto partition = createPartition(p, DL_GETPSIZE(pp));
+
+                    partition->addFilesystem(fs);
+                    block->addPartition(partition);
+                    m_drive->addBlock(block);
                 }
             }
         }
@@ -135,23 +158,31 @@ bool DiskLabel::isValid() const
 
 void DiskLabel::createDrive(const QString& dev)
 {
-    qDebug() << "Created drive " << dev;
     m_drive = std::make_shared<Drive>(dev);
 }
 
-void DiskLabel::createBlock(const QString& partitionNumber, const QString& fstype)
+TBlock DiskLabel::createBlock(const QString& dev, const QString& fstype, u_int64_t blockSize)
 {
-    const QString dev(getDeviceName() + partitionNumber);
     auto block = std::make_shared<Block>(dev);
 
-    auto partition = std::make_shared<BlockPartition>();
-    block->addPartition(partition);
+    block->setSize(blockSize);
+    block->setIdUsage(QStringLiteral("filesystem"));
+    block->setIdType(fstype);
 
+    return block;
+}
+
+TBlockPartition DiskLabel::createPartition(const QString& partitionNumber, u_int64_t partitionSize)
+{
+    auto partition = std::make_shared<BlockPartition>(partitionNumber);
+    partition->size = partitionSize;
+    return partition;
+}
+
+TBlockFilesystem DiskLabel::createFilesystem(const TBlock& block, const QString& fstype)
+{
     auto bfs = std::make_shared<BlockFilesystem>();
     bfs->filesystem = fstype;
-    block->idUsage = QStringLiteral("filesystem");
-    block->idType = fstype;
-    ;
 
     for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
         if (storage.isValid() && storage.isReady()) {
@@ -161,6 +192,5 @@ void DiskLabel::createBlock(const QString& partitionNumber, const QString& fstyp
             }
         }
     }
-    block->getPartition()->addFilesystem(bfs);
-    m_drive->addBlock(block);
+    return bfs;
 }

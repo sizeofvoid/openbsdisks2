@@ -31,6 +31,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusMessage>
+#include <QDebug>
 #include <QDir>
 #include <QProcess>
 
@@ -117,9 +118,7 @@ QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn,
     uid_t uid = uidReply.value();
 
     QProcess mount;
-    QString mountPoint = filesystem == "zfs"
-        ? zfsDataset
-        : "";
+    QString mountPoint;
     //: createMountPoint(parentBlock()->id().replace(' ', '_'), uid);
     QStringList args;
 
@@ -146,12 +145,6 @@ QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn,
         args << QStringLiteral("-o") << QStringLiteral("allow_other");
     }
 
-    if (filesystem == "zfs") {
-        mountProg = QStringLiteral("/sbin/zfs");
-
-        args << QStringLiteral("mount") << mountPoint;
-    }
-    //else
     // args << parentBlock()->device() << mountPoint;
 
     mount.setProgram(mountProg);
@@ -168,11 +161,7 @@ QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn,
         return QString();
     }
 
-    // For ZFS, the "mountPoint" variable contains dataset name
-    if (filesystem == "zfs")
-        mountPoints << zfsMountpoint.toLocal8Bit();
-    else
-        mountPoints << mountPoint.toLocal8Bit();
+    mountPoints << mountPoint.toLocal8Bit();
 
     signalMountPointsChanged();
 
@@ -189,28 +178,6 @@ void BlockFilesystem::Unmount(const QVariantMap& options, QDBusConnection conn, 
     }
 
     bool error = false;
-
-    if (filesystem == "zfs") {
-        QProcess zfsProcess;
-        QStringList args;
-
-        args << QStringLiteral("unmount") << zfsDataset;
-
-        zfsProcess.start(QStringLiteral("/sbin/zfs"), args);
-        zfsProcess.waitForFinished(-1);
-
-        if (zfsProcess.exitCode() == 0) {
-            mountPoints.clear();
-            signalMountPointsChanged();
-        }
-        else {
-            QString errorMessage = zfsProcess.readAllStandardError();
-            conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
-            qDebug() << errorMessage;
-        }
-
-        return;
-    }
 
     for (auto mp = mountPoints.begin(); mp != mountPoints.end(); mp++) {
         QProcess umount;

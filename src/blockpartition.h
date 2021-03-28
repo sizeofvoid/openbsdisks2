@@ -30,12 +30,13 @@
 
 class BlockPartition {
 public:
-    BlockPartition() = default;
+    BlockPartition(const QString&);
 
     void addFilesystem(const TBlockFilesystem&);
     TBlockFilesystem getFilesystem() const;
 
     QString name() const;
+
     // XXX
     QString partitionType;
     QString partBlockName;
@@ -44,6 +45,7 @@ public:
     qulonglong size;
 
 private:
+    const QString m_name;
     // org.freedesktop.UDisks2.Filesystem — Block device containing a mountable filesystem
     TBlockFilesystem m_Filesystem;
 };

@@ -893,9 +893,6 @@ class DriveAdaptor : public QDBusAbstractAdaptor {
                                        "        on the hardware to show e.g. <quote>It is now safe to remove\n"
                                        "        the device</quote>.\n"
                                        "    -->\n"
-                                       "<property name=\"bsdisks_IsHotpluggable\" type=\"b\" access=\"read\"/>"
-                                       "<property name=\"bsdisks_ConnectionBus\" type=\"s\" access=\"read\"/>"
-                                       "<property name=\"bsdisks_AtaSata\" type=\"s\" access=\"read\"/>"
                                        "    <method name=\"Eject\">\n"
                                        "      <arg direction=\"in\" type=\"a{sv}\" name=\"options\"/>\n"
                                        "      <annotation value=\"QVariantMap\" name=\"org.qtproject.QtDBus.QtTypeName.In0\"/>\n"
@@ -1060,13 +1057,6 @@ public: // PROPERTIES
 
     Q_PROPERTY(QString WWN READ wWN)
     QString wWN() const;
-
-    Q_PROPERTY(bool bsdisks_IsHotpluggable READ bsdisks_IsHotpluggableR)
-    bool bsdisks_IsHotpluggableR() const;
-    Q_PROPERTY(QString bsdisks_ConnectionBus READ bsdisks_ConnectionBusR)
-    QString bsdisks_ConnectionBusR() const;
-    Q_PROPERTY(QString bsdisks_AtaSata READ bsdisks_AtaSataR)
-    QString bsdisks_AtaSataR() const;
 
 public Q_SLOTS: // METHODS
     void Eject(const QVariantMap& options);

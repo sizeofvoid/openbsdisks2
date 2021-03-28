@@ -33,6 +33,8 @@
 #include "adaptors.h"
 #include "block.h"
 
+class QUuid;
+
 /**
  *
  * org.freedesktop.UDisks2.Drive
@@ -55,22 +57,19 @@ class Drive : public QObject,
 public:
     Drive() = default;
     Drive(const QString&);
-    ~Drive()
-    {
-        qDebug() << "~Drive";
-    };
 
     const QDBusObjectPath getDbusPath() const;
 
-    QString description;
-    QString identifier;
-    bool isRemovable;
-    QString ataSata;
-
     QString getDeviceName() const;
+
+    void setVendor(const QString&);
+
+    void setRemovable(bool);
 
     void addBlock(const TBlock&);
     const TBlockVec getBlocks() const;
+
+    void setDuid(const QUuid&);
 
     Q_PROPERTY(Configuration Configuration READ configuration)
     Configuration configuration() const;
@@ -78,9 +77,13 @@ public:
     Q_PROPERTY(QString Vendor READ vendor)
     QString vendor() const;
 
-    qulonglong size;
     Q_PROPERTY(qulonglong Size READ driveSize)
     qulonglong driveSize() const;
+    void setSize(qulonglong);
+
+    Q_PROPERTY(QString Id READ id)
+    QString id() const;
+    void setId(const QString&);
 
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
@@ -97,25 +100,30 @@ public:
     Q_PROPERTY(bool Removable READ removable)
     bool removable() const;
 
+    Q_PROPERTY(bool MediaRemovable READ mediaRemovable)
+    bool mediaRemovable() const;
+
     Q_PROPERTY(QString ConnectionBus READ connectionBus)
     QString connectionBus() const;
-
-    Q_PROPERTY(bool bsdisks_IsHotpluggable READ bsdisks_IsHotpluggableR)
-    bool bsdisks_IsHotpluggableR() const;
-
-    Q_PROPERTY(QString bsdisks_ConnectionBus READ bsdisks_ConnectionBusR)
-    QString bsdisks_ConnectionBusR() const;
-
-    Q_PROPERTY(QString bsdisks_AtaSata READ bsdisks_AtaSataR)
-    QString bsdisks_AtaSataR() const;
 
 public slots:
     void Eject(const QVariantMap& options);
 
 private:
+    QString m_Id;
     TBlockVec m_blocks;
+
     const QString m_deviceName;
+
     const QDBusObjectPath m_dbusPath;
+
+    QString m_Vendor;
+
+    bool isRemovable = false;
+    qulonglong size;
+
+    // disklabel(8) UID
+    QUuid m_Duid;
 };
 
 using TDrive = std::shared_ptr<Drive>;
