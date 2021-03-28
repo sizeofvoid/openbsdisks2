@@ -32,6 +32,7 @@
 #include <QChar>
 #include <QDebug>
 #include <QString>
+#include <QUuid>
 
 DiskLabel::DiskLabel(const QString& dev)
 {
@@ -57,6 +58,10 @@ void DiskLabel::analyseDev(const QString& dev)
     createDrive(dev);
     m_drive->setDescription(QString(lab.d_packname));
     m_drive->setSize(blockSize);
+    const QUuid duid(0x0, 0x0, 0x0,
+                     lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
+                     lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+    m_drive->setDuid(duid);
 
 
     struct disklabel::partition* pp = nullptr;

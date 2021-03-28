@@ -33,6 +33,8 @@
 #include "adaptors.h"
 #include "block.h"
 
+class QUuid;
+
 /**
  *
  * org.freedesktop.UDisks2.Drive
@@ -62,12 +64,12 @@ public:
 
     void setDescription(const QString&);
 
-    void setIdentifier(const QString&);
-
     void setRemovable(bool);
 
     void addBlock(const TBlock&);
     const TBlockVec getBlocks() const;
+
+    void setDuid(const QUuid&);
 
     Q_PROPERTY(Configuration Configuration READ configuration)
     Configuration configuration() const;
@@ -111,10 +113,12 @@ private:
     const QDBusObjectPath m_dbusPath;
 
     QString m_Description;
-    QString m_Identifier;
 
     bool isRemovable = false;
     qulonglong size;
+
+    // disklabel(8) UID
+    QUuid m_Duid;
 };
 
 using TDrive = std::shared_ptr<Drive>;

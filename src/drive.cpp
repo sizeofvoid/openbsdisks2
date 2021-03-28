@@ -31,7 +31,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusObjectPath>
-#include <QProcess>
+#include <QUuid>
 
 #include "bsdisks.h"
 #include "drive.h"
@@ -58,11 +58,6 @@ Drive::getDeviceName() const
 void Drive::setDescription(const QString& d)
 {
     m_Description = d;
-}
-
-void Drive::setIdentifier(const QString& i)
-{
-    m_Identifier = i;
 }
 
 void Drive::setRemovable(bool r)
@@ -136,13 +131,19 @@ qulonglong Drive::driveSize() const
 
 QString Drive::serial() const
 {
-    return m_Identifier;
+    return m_Duid.toString();
 }
 
 void
 Drive::setSize(qulonglong s)
 {
     size = s;
+}
+
+void
+Drive::setDuid(const QUuid& duid)
+{
+    m_Duid = duid;
 }
 
 bool Drive::ejectable() const
