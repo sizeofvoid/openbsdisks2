@@ -158,10 +158,10 @@ void DiskLabel::createDrive(const QString& dev)
 TBlock DiskLabel::createBlock(const QString& dev, const QString& fstype, u_int64_t blockSize)
 {
     auto block = std::make_shared<Block>(dev);
-    block->size = blockSize;
+    block->setSize(blockSize);
 
-    block->idUsage = QStringLiteral("filesystem");
-    block->idType = fstype;
+    block->setIdUsage(QStringLiteral("filesystem"));
+    block->setIdType(fstype);
     return block;
 }
 

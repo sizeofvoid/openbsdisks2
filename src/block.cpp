@@ -28,6 +28,7 @@
 
 #include <QByteArrayList>
 #include <QFileInfo>
+#include <QDebug>
 
 #include "block.h"
 #include "bsdisks.h"
@@ -50,17 +51,37 @@ Block::getName() const
 {
     return m_Name;
 }
+QString
+Block::getIdType() const
+{
+    return m_IdType;
+}
+
+QString
+Block::getIdUsage() const
+{
+    return m_IdUsage;
+}
+void Block::setIdType(const QString& id)
+{
+    m_IdType = id;
+}
+
+void Block::setIdUsage(const QString& usage)
+{
+    m_IdType = usage;
+}
 
 void
 Block::setRegistered(bool reg)
 {
-    registered = reg;
+    m_Registered = reg;
 }
 
 bool
 Block::isUnregistered() const
 {
-    return !registered;
+    return !m_Registered;
 }
 
 void Block::addPartition(const TBlockPartition& partition)
@@ -96,7 +117,7 @@ QString Block::id() const
         // XXX return getPartitionTable()->id() + "_" + getName().mid(getName().lastIndexOf(partitionSymbol));
     }
     else
-        return description + "_" + identifier;
+        return m_Description + "_" + m_Id;
 }
 
 QString Block::idLabel() const
@@ -121,9 +142,9 @@ QDBusObjectPath Block::drive() const
 
 QByteArray Block::preferredDevice() const
 {
-    if (labels.empty())
+    if (m_Lavels.empty())
         return device();
-    return (QStringLiteral("/dev/") + labels[0]).toLocal8Bit() + '\0';
+    return (QStringLiteral("/dev/") + m_Lavels[0]).toLocal8Bit() + '\0';
 }
 
 QByteArray Block::device() const
@@ -142,14 +163,19 @@ qulonglong Block::deviceNumber() const
 QByteArrayList Block::symlinks()
 {
     QByteArrayList r;
-    foreach (auto s, labels)
+    foreach (auto s, m_Lavels)
         r << (QStringLiteral("/dev/") + s).toLocal8Bit() + '\0';
     return r;
 }
 
-qulonglong Block::blockSize() const
+qulonglong Block::getSize() const
 {
-    return getPartition() ? m_Partition->size : size;
+    return m_Size;
+}
+
+void Block::setSize(qulonglong size)
+{
+    m_Size = size;
 }
 
 bool Block::hintIgnore() const
@@ -238,5 +264,5 @@ QDBusObjectPath Block::table() const
     if (!getPartition())
         return QDBusObjectPath("/");
 
-    return dbusPath;
+    return m_dbusPath;
 }

@@ -33,6 +33,7 @@
 #include <QDBusMessage>
 #include <QDir>
 #include <QProcess>
+#include <QDebug>
 
 #include <sys/mount.h>
 #include <sys/param.h>

@@ -26,14 +26,9 @@
 
 #pragma once
 
-#include <QDBusConnection>
 #include <QDBusContext>
 #include <QDBusObjectPath>
-#include <QDebug>
 #include <QObject>
-#include <QUrl>
-
-#include <bitset>
 
 #include "blockfilesystem.h"
 #include "blockpartition.h"
@@ -53,18 +48,6 @@ public:
 
     void setRegistered(bool);
     bool isUnregistered() const;
-
-    //XXX
-    QString description;
-    QString identifier;
-    QDBusObjectPath dbusPath;
-    QStringList labels;
-
-    std::bitset<2> probesDone;
-
-    bool needsAnotherProbe = false;
-
-    bool hasNoDrive = false;
 
     void addPartition(const TBlockPartition&);
     TBlockPartition getPartition() const;
@@ -92,15 +75,17 @@ public:
     Q_PROPERTY(QString Id READ id)
     QString id() const;
 
-    QString idType;
-    Q_PROPERTY(QString IdType MEMBER idType)
+    Q_PROPERTY(QString IdType READ getIdType)
+    QString getIdType() const;
+    void setIdType(const QString&);
 
-    QString idUsage;
-    Q_PROPERTY(QString IdUsage MEMBER idUsage)
+    Q_PROPERTY(QString IdUsage READ getIdUsage)
+    QString getIdUsage() const;
+    void setIdUsage(const QString&);
 
-    qulonglong size;
-    Q_PROPERTY(qulonglong Size READ blockSize)
-    qulonglong blockSize() const;
+    Q_PROPERTY(qulonglong Size READ getSize)
+    qulonglong getSize() const;
+    void setSize(qulonglong);
 
     Q_PROPERTY(bool HintIgnore READ hintIgnore)
     bool hintIgnore() const;
@@ -189,9 +174,25 @@ public slots:
     }
 
 private:
+    QString m_IdType;
+
+    QString m_IdUsage;
+
+    qulonglong m_Size;
+
     const QString m_Name;
 
     const QDBusObjectPath m_dbusPath;
+
+    bool m_Registered = false;
+
+    QString m_Description;
+
+    QString m_Id;
+
+    QStringList m_Lavels;
+
+    bool m_HasNoDrive = false;
 
     // org.freedesktop.UDisks2.Partition — Block device representing a partition
     TBlockPartition m_Partition;
@@ -201,9 +202,22 @@ private:
     //org.freedesktop.UDisks2.Swapspace — Block device containing swap data
     //org.freedesktop.UDisks2.Encrypted — Block device containing encrypted data
     //org.freedesktop.UDisks2.Loop — Block device backed by a file
-
-    bool registered = false;
-
+    /**
+     * TODO Not impl
+     *
+     * Device                 readable   ay
+     * ReadOnly               readable   b
+     * IdVersion              readable   s
+     * IdUUID                 readable   s
+     * Configuration          readable   a(sa{sv})
+     * HintPartitionable      readable   b
+     * HintSystem             readable   b
+     * HintIgnore             readable   b
+     * HintAuto               readable   b
+     * HintIconName           readable   s
+     * HintSymbolicIconName   readable   s
+     * UserspaceMountOptions  readable   as
+     */
 };
 
 using TBlock = std::shared_ptr<Block>;
