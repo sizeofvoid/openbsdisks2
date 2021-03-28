@@ -64,6 +64,10 @@ void DiskLabel::analyseDev(const QString& dev)
     m_drive->setVendor(QString(lab.d_packname));
     m_drive->setSize(blockSize);
 
+    QString sduid = QString::asprintf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
+        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+
     struct disklabel::partition* pp = nullptr;
 
     for (int i = 0; i < lab.d_npartitions; i++) {
@@ -74,6 +78,8 @@ void DiskLabel::analyseDev(const QString& dev)
                 if (isValidFileSysetem(pp->p_fstype)) {
 
                     auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
+                    block->setId(sduid + p);
+                    block->setIdLabel(lab.d_packname);
                     auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));
                     auto partition = createPartition(p, DL_GETPSIZE(pp));
 
@@ -158,10 +164,11 @@ void DiskLabel::createDrive(const QString& dev)
 TBlock DiskLabel::createBlock(const QString& dev, const QString& fstype, u_int64_t blockSize)
 {
     auto block = std::make_shared<Block>(dev);
-    block->setSize(blockSize);
 
+    block->setSize(blockSize);
     block->setIdUsage(QStringLiteral("filesystem"));
     block->setIdType(fstype);
+
     return block;
 }
 

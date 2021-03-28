@@ -1,5 +1,6 @@
 /*
     Copyright 2016 Gleb Popov <6yearold@gmail.com>
+    Copyright 2021 Rafael Sadowski <rafael@sizeofvoid.org>
 
     Redistribution and use in source and binary forms, with or without modification,
     are permitted provided that the following conditions are met:
@@ -51,20 +52,22 @@ Block::getName() const
 {
     return m_Name;
 }
+
 QString
 Block::getIdType() const
 {
     return m_IdType;
 }
 
+void Block::setIdType(const QString& id)
+{
+    m_IdType = id;
+}
+
 QString
 Block::getIdUsage() const
 {
     return m_IdUsage;
-}
-void Block::setIdType(const QString& id)
-{
-    m_IdType = id;
 }
 
 void Block::setIdUsage(const QString& usage)
@@ -106,30 +109,32 @@ Block::getPartitionTable() const
 
 QString Block::id() const
 {
-    if (getPartitionTable()) {
-        auto tableType = getPartitionTable()->tableType();
-        QChar partitionSymbol = tableType == QStringLiteral("gpt")
-            ? 'p'
-            : 's';
-        return partitionSymbol;
-        // XXX return getPartitionTable()->id() + "_" + getName().mid(getName().lastIndexOf(partitionSymbol));
-    }
-    else
-        return m_Description + "_" + m_Id;
+    if (!m_Id.isEmpty())
+        return QLatin1String("by-uuid-") + m_Id;
+    if (!m_IdLabel.isEmpty())
+        return QLatin1String("by-label-") + m_IdLabel;
+    return getName();
+}
+
+void Block::setId(const QString& id)
+{
+    m_Id = id;
 }
 
 QString Block::idLabel() const
 {
+    if (!getName().isEmpty() && !m_IdLabel.isEmpty())
+        return getName() + " - " + m_IdLabel;
     return getName();
+}
+
+void Block::setIdLabel(const QString& idl)
+{
+    m_IdLabel = idl;
 }
 
 QString Block::driveName() const
 {
-    /*
-    if (getPartition())
-        return getPartitionTable()->driveName();
-        */
-
     return getName();
 }
 
@@ -153,17 +158,13 @@ QByteArray Block::device() const
 qulonglong Block::deviceNumber() const
 {
     struct stat st;
-
     ::stat((QStringLiteral("/dev/") + getName()).toLocal8Bit().constData(), &st);
     return st.st_rdev;
 }
 
 QByteArrayList Block::symlinks()
 {
-    QByteArrayList r;
-    foreach (auto s, m_Lavels)
-        r << (QStringLiteral("/dev/") + s).toLocal8Bit() + '\0';
-    return r;
+    return {};
 }
 
 qulonglong Block::getSize() const
@@ -178,15 +179,6 @@ void Block::setSize(qulonglong size)
 
 bool Block::hintIgnore() const
 {
-    if (getPartition()) {
-        // there should be better predicate for this, probably
-        // right now ignore efi partitions on ada/ad, these usually contain bootloader
-        // stuff and not needed to be mounted by regular user
-        QFileInfo devInfo(device());
-        if (getPartition()->partitionType == "efi" && devInfo.fileName().startsWith("ad"))
-            return true;
-    }
-
     return false;
 }
 
@@ -205,7 +197,6 @@ QByteArrayList Block::mountPoints() const
 
         return r;
     }
-
     return QByteArrayList();
 }
 

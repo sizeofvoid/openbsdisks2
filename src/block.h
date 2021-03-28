@@ -68,12 +68,14 @@ public:
 
     Q_PROPERTY(QString IdLabel READ idLabel)
     QString idLabel() const;
+    void setIdLabel(const QString&);
 
     Q_PROPERTY(QByteArrayList Symlinks READ symlinks)
     QByteArrayList symlinks();
 
     Q_PROPERTY(QString Id READ id)
     QString id() const;
+    void setId(const QString&);
 
     Q_PROPERTY(QString IdType READ getIdType)
     QString getIdType() const;
@@ -189,6 +191,8 @@ private:
     QString m_Description;
 
     QString m_Id;
+
+    QString m_IdLabel;
 
     QStringList m_Lavels;
 
