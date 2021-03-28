@@ -62,7 +62,7 @@ public:
 
     QString getDeviceName() const;
 
-    void setDescription(const QString&);
+    void setVendor(const QString&);
 
     void setRemovable(bool);
 
@@ -80,6 +80,11 @@ public:
     Q_PROPERTY(qulonglong Size READ driveSize)
     qulonglong driveSize() const;
     void setSize(qulonglong);
+
+    Q_PROPERTY(QString Id READ id)
+    QString id() const;
+    void setId(const QString&);
+
 
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
@@ -106,13 +111,14 @@ public slots:
     void Eject(const QVariantMap& options);
 
 private:
+    QString m_Id;
     TBlockVec m_blocks;
 
     const QString m_deviceName;
 
     const QDBusObjectPath m_dbusPath;
 
-    QString m_Description;
+    QString m_Vendor;
 
     bool isRemovable = false;
     qulonglong size;

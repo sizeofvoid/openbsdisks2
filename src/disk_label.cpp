@@ -56,13 +56,13 @@ void DiskLabel::analyseDev(const QString& dev)
     const u_int64_t blockSize = DL_GETDSIZE(&lab);
 
     createDrive(dev);
-    m_drive->setDescription(QString(lab.d_packname));
-    m_drive->setSize(blockSize);
     const QUuid duid(0x0, 0x0, 0x0,
                      lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
                      lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+    m_drive->setId(QString(specname).replace("/dev/", "dev_"));
     m_drive->setDuid(duid);
-
+    m_drive->setVendor(QString(lab.d_packname));
+    m_drive->setSize(blockSize);
 
     struct disklabel::partition* pp = nullptr;
 

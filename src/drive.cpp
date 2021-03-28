@@ -55,9 +55,9 @@ Drive::getDeviceName() const
     return m_deviceName;
 }
 
-void Drive::setDescription(const QString& d)
+void Drive::setVendor(const QString& vendor)
 {
-    m_Description = d;
+    m_Vendor = vendor;
 }
 
 void Drive::setRemovable(bool r)
@@ -121,13 +121,24 @@ QStringList Drive::mediaCompatibility() const
 
 QString Drive::vendor() const
 {
-    return m_Description;
+    return m_Vendor;
 }
 
 qulonglong Drive::driveSize() const
 {
     return size;
 }
+
+void Drive::setId(const QString& id)
+{
+    m_Id = id;
+}
+
+QString Drive::id() const
+{
+    return m_Id;
+}
+
 
 QString Drive::serial() const
 {
