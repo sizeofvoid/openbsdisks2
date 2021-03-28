@@ -54,6 +54,7 @@ Drive::getDeviceName() const
 {
     return m_deviceName;
 }
+
 void Drive::addBlock(const TBlock& block)
 {
     qDebug() << "Disk " << getDeviceName() << " add block: " << block->getName();
@@ -130,6 +131,11 @@ bool Drive::ejectable() const
 bool Drive::removable() const
 {
     return isRemovable;
+}
+
+bool Drive::mediaRemovable() const
+{
+    return optical() || removable();
 }
 
 QString Drive::connectionBus() const

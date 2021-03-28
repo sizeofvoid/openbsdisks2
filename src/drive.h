@@ -60,6 +60,7 @@ public:
 
     QString description;
     QString identifier;
+
     bool isRemovable = false;
 
     QString getDeviceName() const;
@@ -91,6 +92,9 @@ public:
 
     Q_PROPERTY(bool Removable READ removable)
     bool removable() const;
+
+    Q_PROPERTY(bool MediaRemovable READ mediaRemovable)
+    bool mediaRemovable() const;
 
     Q_PROPERTY(QString ConnectionBus READ connectionBus)
     QString connectionBus() const;
