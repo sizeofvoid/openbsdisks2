@@ -55,6 +55,22 @@ Drive::getDeviceName() const
     return m_deviceName;
 }
 
+void Drive::setDescription(const QString& d)
+{
+    m_Description = d;
+}
+
+void Drive::setIdentifier(const QString& i)
+{
+    m_Identifier = i;
+}
+
+void Drive::setRemovable(bool r)
+{
+    isRemovable = r;
+}
+
+
 void Drive::addBlock(const TBlock& block)
 {
     qDebug() << "Disk " << getDeviceName() << " add block: " << block->getName();
@@ -110,7 +126,7 @@ QStringList Drive::mediaCompatibility() const
 
 QString Drive::vendor() const
 {
-    return description;
+    return m_Description;
 }
 
 qulonglong Drive::driveSize() const
@@ -120,7 +136,13 @@ qulonglong Drive::driveSize() const
 
 QString Drive::serial() const
 {
-    return identifier;
+    return m_Identifier;
+}
+
+void
+Drive::setSize(qulonglong s)
+{
+    size = s;
 }
 
 bool Drive::ejectable() const

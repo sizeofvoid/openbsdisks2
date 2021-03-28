@@ -55,8 +55,8 @@ void DiskLabel::analyseDev(const QString& dev)
     const u_int64_t blockSize = DL_GETDSIZE(&lab);
 
     createDrive(dev);
-    m_drive->description = QString(lab.d_packname);
-    m_drive->size = blockSize;
+    m_drive->setDescription(QString(lab.d_packname));
+    m_drive->setSize(blockSize);
 
 
     struct disklabel::partition* pp = nullptr;

@@ -58,12 +58,13 @@ public:
 
     const QDBusObjectPath getDbusPath() const;
 
-    QString description;
-    QString identifier;
-
-    bool isRemovable = false;
-
     QString getDeviceName() const;
+
+    void setDescription(const QString&);
+
+    void setIdentifier(const QString&);
+
+    void setRemovable(bool);
 
     void addBlock(const TBlock&);
     const TBlockVec getBlocks() const;
@@ -74,9 +75,9 @@ public:
     Q_PROPERTY(QString Vendor READ vendor)
     QString vendor() const;
 
-    qulonglong size;
     Q_PROPERTY(qulonglong Size READ driveSize)
     qulonglong driveSize() const;
+    void setSize(qulonglong);
 
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
@@ -104,8 +105,16 @@ public slots:
 
 private:
     TBlockVec m_blocks;
+
     const QString m_deviceName;
+
     const QDBusObjectPath m_dbusPath;
+
+    QString m_Description;
+    QString m_Identifier;
+
+    bool isRemovable = false;
+    qulonglong size;
 };
 
 using TDrive = std::shared_ptr<Drive>;
