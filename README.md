@@ -7,14 +7,14 @@ The sourcecode based on commit [3d3439348ba00ae972e146c5bf28cb42949e24f](https:/
 
 ### Feature List
  - [x] Simple DBus org.freedesktop.UDisks2.service
- - [X] Provides `org.freedesktop.UDisks2.Block` (Not all information yet)
- - [X] Provides `org.freedesktop.UDisks2.Drive` (Not all information yet)
+ - [X] Provides `org.freedesktop.UDisks2.Block`
+ - [X] Provides `org.freedesktop.UDisks2.Drive`
  - [X] Provides `org.freedesktop.UDisks2.Filesystem` (Not all information yet)
  - [X] Logging via `stdout` and syslog
  - [ ] cd(4) support
  - [ ] mount(2), umount(2) support
  - [ ] Privilege separation
- - [ ] Device information updates
+ - [] Device information updates
 
 ## UDisks2
 
