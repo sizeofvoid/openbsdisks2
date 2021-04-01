@@ -25,22 +25,23 @@
 /**
  * disklabel – read disk pack label
  */
-class DiskLabel {
+class DiskLabel
+{
 public:
     DiskLabel() = default;
     DiskLabel(const QString&);
 
-    bool isValid() const;
-    TDrive getDrive() const;
+    bool    isValid() const;
+    TDrive  getDrive() const;
     QString getDeviceName() const;
 
 private:
     void analyseDev(const QString&);
     bool isValidFileSysetem(u_int8_t) const;
 
-    void createDrive(const QString&);
-    TBlock createBlock(const QString&, const QString&, u_int64_t);
-    TBlockPartition createPartition(const QString&, u_int64_t);
+    void             createDrive(const QString&);
+    TBlock           createBlock(const QString&, const QString&, u_int64_t);
+    TBlockPartition  createPartition(const QString&, u_int64_t);
     TBlockFilesystem createFilesystem(const TBlock&, const QString&);
 
     TDrive m_drive = nullptr;

@@ -14,13 +14,13 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
         QVariantMapMap interfaces;
 
         for (QObject* child : o->children()) {
-
             if (QDBusAbstractAdaptor* adaptor = qobject_cast<QDBusAbstractAdaptor*>(child)) {
-                const QString& iface = adaptor->metaObject()->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface")).value();
+                const QString& iface = adaptor->metaObject()
+                                           ->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface"))
+                                           .value();
 
                 QVariantMap properties;
-                for (int i = adaptor->metaObject()->propertyOffset();
-                     i < adaptor->metaObject()->propertyCount(); ++i) {
+                for (int i = adaptor->metaObject()->propertyOffset(); i < adaptor->metaObject()->propertyCount(); ++i) {
                     auto propertyName = adaptor->metaObject()->property(i).name();
                     properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
                 }
@@ -111,21 +111,23 @@ bool ObjectManager::registerBlock(const TBlock& block, bool tryPostponed)
         QString devPath = block->getDbusPath().path();
 
         QList<std::pair<QString, QDBusAbstractAdaptor*>> interfaces;
-        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"),
-            new BlockAdaptor(block.get()));
+        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"), new BlockAdaptor(block.get()));
 
         if (block->getPartition() && block->getPartition()->getFilesystem())
             interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Filesystem"),
-                new FilesystemAdaptor(block.get()));
+                                         new FilesystemAdaptor(block.get()));
 
         /*
         if (block->getPartitionTable())
-            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.PartitionTable"),
-                                         new PartitionTableAdaptor(block.get()));
+            interfaces <<
+        std::make_pair(QStringLiteral("org.freedesktop.UDisks2.PartitionTable"),
+                                         new
+        PartitionTableAdaptor(block.get()));
 
         if (block->getPartition())
-            interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Partition"),
-                                         new PartitionAdaptor(block.get()));
+            interfaces <<
+        std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Partition"), new
+        PartitionAdaptor(block.get()));
          */
 
         addInterfaces(block->getDbusPath(), interfaces);
@@ -143,11 +145,12 @@ void ObjectManager::registerDrive(const TDrive& drive)
 
     QDBusConnection::systemBus().registerObject(dbusPath, drive.get());
 
-    addInterfaces(drive->getDbusPath(), {std::make_pair("org.freedesktop.UDisks2.Drive", new DriveAdaptor(drive.get()))});
+    addInterfaces(drive->getDbusPath(),
+                  {std::make_pair("org.freedesktop.UDisks2.Drive", new DriveAdaptor(drive.get()))});
 }
 
-void ObjectManager::addInterfaces(const QDBusObjectPath& path,
-    const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
+void ObjectManager::addInterfaces(const QDBusObjectPath&                                  path,
+                                  const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
 {
     qDebug() << "Add Interfaces";
     QVariantMapMap interfaces;
@@ -158,8 +161,7 @@ void ObjectManager::addInterfaces(const QDBusObjectPath& path,
         QDBusAbstractAdaptor* adaptor = pair.second;
 
         QVariantMap properties;
-        for (int i = adaptor->metaObject()->propertyOffset();
-             i < adaptor->metaObject()->propertyCount(); ++i) {
+        for (int i = adaptor->metaObject()->propertyOffset(); i < adaptor->metaObject()->propertyCount(); ++i) {
             auto propertyName = adaptor->metaObject()->property(i).name();
             properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
         }

@@ -1,9 +1,30 @@
-﻿---
+﻿Language: Cpp
 BasedOnStyle: WebKit
-BreakBeforeBraces: Stroustrup
-Cpp11BracedListStyle: 'true'
-Language: Cpp
-Standard: Auto
-UseTab: Never
+Standard: Cpp11
+TabWidth: 4
+ColumnLimit: 120
+SortIncludes: true
 
-...
+# Mostly 'Linux' style but with different enums
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: true
+  AfterClass: true
+  AfterCaseLabel: true
+  AfterFunction: true
+
+PointerAlignment: Left
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: None
+Cpp11BracedListStyle: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: None
+SpaceAfterTemplateKeyword: false
+AlignConsecutiveDeclarations: true

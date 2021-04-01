@@ -27,6 +27,7 @@ DBUSManagerStruct ObjectManagerAdaptor::GetManagedObjects()
     qDebug() << "ObjectManagerAdaptor::GetManagedObjects";
     // handle method call org.freedesktop.DBus.ObjectManager.GetManagedObjects
     DBUSManagerStruct object_paths_interfaces_and_properties;
-    QMetaObject::invokeMethod(parent(), "GetManagedObjects", Q_RETURN_ARG(DBUSManagerStruct, object_paths_interfaces_and_properties));
+    QMetaObject::invokeMethod(
+        parent(), "GetManagedObjects", Q_RETURN_ARG(DBUSManagerStruct, object_paths_interfaces_and_properties));
     return object_paths_interfaces_and_properties;
 }

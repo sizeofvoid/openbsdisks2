@@ -195,7 +195,8 @@ QByteArrayList BlockAdaptor::symlinks() const
 void BlockAdaptor::AddConfigurationItem(Configuration item, const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.AddConfigurationItem
-    QMetaObject::invokeMethod(parent(), "AddConfigurationItem", Q_ARG(Configuration, item), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "AddConfigurationItem", Q_ARG(Configuration, item), Q_ARG(QVariantMap, options));
 }
 
 void BlockAdaptor::Format(const QString& type, const QVariantMap& options)
@@ -208,7 +209,10 @@ ConfigurationList BlockAdaptor::GetSecretConfiguration(const QVariantMap& option
 {
     // handle method call org.freedesktop.UDisks2.Block.GetSecretConfiguration
     ConfigurationList configuration;
-    QMetaObject::invokeMethod(parent(), "GetSecretConfiguration", Q_RETURN_ARG(ConfigurationList, configuration), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "GetSecretConfiguration",
+                              Q_RETURN_ARG(ConfigurationList, configuration),
+                              Q_ARG(QVariantMap, options));
     return configuration;
 }
 
@@ -216,7 +220,8 @@ QDBusUnixFileDescriptor BlockAdaptor::OpenForBackup(const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.OpenForBackup
     QDBusUnixFileDescriptor fd;
-    QMetaObject::invokeMethod(parent(), "OpenForBackup", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "OpenForBackup", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
     return fd;
 }
 
@@ -224,7 +229,8 @@ QDBusUnixFileDescriptor BlockAdaptor::OpenForBenchmark(const QVariantMap& option
 {
     // handle method call org.freedesktop.UDisks2.Block.OpenForBenchmark
     QDBusUnixFileDescriptor fd;
-    QMetaObject::invokeMethod(parent(), "OpenForBenchmark", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "OpenForBenchmark", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
     return fd;
 }
 
@@ -232,14 +238,16 @@ QDBusUnixFileDescriptor BlockAdaptor::OpenForRestore(const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.OpenForRestore
     QDBusUnixFileDescriptor fd;
-    QMetaObject::invokeMethod(parent(), "OpenForRestore", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "OpenForRestore", Q_RETURN_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
     return fd;
 }
 
 void BlockAdaptor::RemoveConfigurationItem(Configuration item, const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.RemoveConfigurationItem
-    QMetaObject::invokeMethod(parent(), "RemoveConfigurationItem", Q_ARG(Configuration, item), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "RemoveConfigurationItem", Q_ARG(Configuration, item), Q_ARG(QVariantMap, options));
 }
 
 void BlockAdaptor::Rescan(const QVariantMap& options)
@@ -251,7 +259,11 @@ void BlockAdaptor::Rescan(const QVariantMap& options)
 void BlockAdaptor::UpdateConfigurationItem(Configuration old_item, Configuration new_item, const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.UpdateConfigurationItem
-    QMetaObject::invokeMethod(parent(), "UpdateConfigurationItem", Q_ARG(Configuration, old_item), Q_ARG(Configuration, new_item), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "UpdateConfigurationItem",
+                              Q_ARG(Configuration, old_item),
+                              Q_ARG(Configuration, new_item),
+                              Q_ARG(QVariantMap, options));
 }
 
 /*
@@ -658,7 +670,8 @@ QVariantList AtaAdaptor::SmartGetAttributes(const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Drive.Ata.SmartGetAttributes
     QVariantList attributes;
-    QMetaObject::invokeMethod(parent(), "SmartGetAttributes", Q_RETURN_ARG(QVariantList, attributes), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(
+        parent(), "SmartGetAttributes", Q_RETURN_ARG(QVariantList, attributes), Q_ARG(QVariantMap, options));
     return attributes;
 }
 
@@ -702,10 +715,16 @@ EncryptedAdaptor::~EncryptedAdaptor()
     // destructor
 }
 
-void EncryptedAdaptor::ChangePassphrase(const QString& passphrase, const QString& new_passphrase, const QVariantMap& options)
+void EncryptedAdaptor::ChangePassphrase(const QString&     passphrase,
+                                        const QString&     new_passphrase,
+                                        const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Encrypted.ChangePassphrase
-    QMetaObject::invokeMethod(parent(), "ChangePassphrase", Q_ARG(QString, passphrase), Q_ARG(QString, new_passphrase), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "ChangePassphrase",
+                              Q_ARG(QString, passphrase),
+                              Q_ARG(QString, new_passphrase),
+                              Q_ARG(QVariantMap, options));
 }
 
 void EncryptedAdaptor::Lock(const QVariantMap& options)
@@ -718,7 +737,11 @@ QDBusObjectPath EncryptedAdaptor::Unlock(const QString& passphrase, const QVaria
 {
     // handle method call org.freedesktop.UDisks2.Encrypted.Unlock
     QDBusObjectPath cleartext_device;
-    QMetaObject::invokeMethod(parent(), "Unlock", Q_RETURN_ARG(QDBusObjectPath, cleartext_device), Q_ARG(QString, passphrase), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "Unlock",
+                              Q_RETURN_ARG(QDBusObjectPath, cleartext_device),
+                              Q_ARG(QString, passphrase),
+                              Q_ARG(QVariantMap, options));
     return cleartext_device;
 }
 
@@ -801,7 +824,7 @@ qulonglong JobAdaptor::expectedEndTime() const
 QList<QDBusObjectPath> JobAdaptor::objects() const
 {
     // get the value of property Objects
-    return qvariant_cast<QList<QDBusObjectPath> >(parent()->property("Objects"));
+    return qvariant_cast<QList<QDBusObjectPath>>(parent()->property("Objects"));
 }
 
 QString JobAdaptor::operation() const
@@ -1048,15 +1071,30 @@ QDBusObjectPath ManagerAdaptor::LoopSetup(const QDBusUnixFileDescriptor& fd, con
 {
     // handle method call org.freedesktop.UDisks2.Manager.LoopSetup
     QDBusObjectPath resulting_device;
-    QMetaObject::invokeMethod(parent(), "LoopSetup", Q_RETURN_ARG(QDBusObjectPath, resulting_device), Q_ARG(QDBusUnixFileDescriptor, fd), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "LoopSetup",
+                              Q_RETURN_ARG(QDBusObjectPath, resulting_device),
+                              Q_ARG(QDBusUnixFileDescriptor, fd),
+                              Q_ARG(QVariantMap, options));
     return resulting_device;
 }
 
-QDBusObjectPath ManagerAdaptor::MDRaidCreate(const QList<QDBusObjectPath>& blocks, const QString& level, const QString& name, qulonglong chunk, const QVariantMap& options)
+QDBusObjectPath ManagerAdaptor::MDRaidCreate(const QList<QDBusObjectPath>& blocks,
+                                             const QString&                level,
+                                             const QString&                name,
+                                             qulonglong                    chunk,
+                                             const QVariantMap&            options)
 {
     // handle method call org.freedesktop.UDisks2.Manager.MDRaidCreate
     QDBusObjectPath resulting_array;
-    QMetaObject::invokeMethod(parent(), "MDRaidCreate", Q_RETURN_ARG(QDBusObjectPath, resulting_array), Q_ARG(QList<QDBusObjectPath>, blocks), Q_ARG(QString, level), Q_ARG(QString, name), Q_ARG(qulonglong, chunk), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "MDRaidCreate",
+                              Q_RETURN_ARG(QDBusObjectPath, resulting_array),
+                              Q_ARG(QList<QDBusObjectPath>, blocks),
+                              Q_ARG(QString, level),
+                              Q_ARG(QString, name),
+                              Q_ARG(qulonglong, chunk),
+                              Q_ARG(QVariantMap, options));
     return resulting_array;
 }
 
@@ -1182,11 +1220,22 @@ QString PartitionTableAdaptor::type() const
     return qvariant_cast<QString>(parent()->property("PartitionTable_Type"));
 }
 
-QDBusObjectPath PartitionTableAdaptor::CreatePartition(qulonglong offset, qulonglong size, const QString& type, const QString& name, const QVariantMap& options)
+QDBusObjectPath PartitionTableAdaptor::CreatePartition(qulonglong         offset,
+                                                       qulonglong         size,
+                                                       const QString&     type,
+                                                       const QString&     name,
+                                                       const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.PartitionTable.CreatePartition
     QDBusObjectPath created_partition;
-    QMetaObject::invokeMethod(parent(), "CreatePartition", Q_RETURN_ARG(QDBusObjectPath, created_partition), Q_ARG(qulonglong, offset), Q_ARG(qulonglong, size), Q_ARG(QString, type), Q_ARG(QString, name), Q_ARG(QVariantMap, options));
+    QMetaObject::invokeMethod(parent(),
+                              "CreatePartition",
+                              Q_RETURN_ARG(QDBusObjectPath, created_partition),
+                              Q_ARG(qulonglong, offset),
+                              Q_ARG(qulonglong, size),
+                              Q_ARG(QString, type),
+                              Q_ARG(QString, name),
+                              Q_ARG(QVariantMap, options));
     return created_partition;
 }
 

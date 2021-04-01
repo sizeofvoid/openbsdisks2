@@ -42,11 +42,8 @@ DiskLabel::DiskLabel(const QString& dev)
 void DiskLabel::analyseDev(const QString& dev)
 {
     struct disklabel lab;
-    char* specname;
-    int f = opendev(dev.toLocal8Bit().data(),
-        O_RDONLY,
-        OPENDEV_PART,
-        &specname);
+    char*            specname;
+    int              f = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &specname);
 
     if (ioctl(f, DIOCGDINFO, &lab) == -1) {
         close(f);
@@ -56,17 +53,31 @@ void DiskLabel::analyseDev(const QString& dev)
     const u_int64_t blockSize = DL_GETDSIZE(&lab);
 
     createDrive(dev);
-    const QUuid duid(0x0, 0x0, 0x0,
-        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
-        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+    const QUuid duid(0x0,
+                     0x0,
+                     0x0,
+                     lab.d_uid[0],
+                     lab.d_uid[1],
+                     lab.d_uid[2],
+                     lab.d_uid[3],
+                     lab.d_uid[4],
+                     lab.d_uid[5],
+                     lab.d_uid[6],
+                     lab.d_uid[7]);
     m_drive->setId(QString(specname).replace("/dev/", "dev_"));
     m_drive->setDuid(duid);
     m_drive->setVendor(QString(lab.d_packname));
     m_drive->setSize(blockSize);
 
     const QString sduid = QString::asprintf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
-        lab.d_uid[0], lab.d_uid[1], lab.d_uid[2], lab.d_uid[3],
-        lab.d_uid[4], lab.d_uid[5], lab.d_uid[6], lab.d_uid[7]);
+                                            lab.d_uid[0],
+                                            lab.d_uid[1],
+                                            lab.d_uid[2],
+                                            lab.d_uid[3],
+                                            lab.d_uid[4],
+                                            lab.d_uid[5],
+                                            lab.d_uid[6],
+                                            lab.d_uid[7]);
 
     struct disklabel::partition* pp = nullptr;
 
@@ -76,7 +87,6 @@ void DiskLabel::analyseDev(const QString& dev)
             QString p('a' + i);
             if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
-
                     auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
                     block->setId(sduid + p);
                     block->setIdLabel(lab.d_packname);
@@ -138,14 +148,12 @@ bool DiskLabel::isValidFileSysetem(u_int8_t fstype) const
     return false;
 }
 
-TDrive
-DiskLabel::getDrive() const
+TDrive DiskLabel::getDrive() const
 {
     return m_drive;
 }
 
-QString
-DiskLabel::getDeviceName() const
+QString DiskLabel::getDeviceName() const
 {
     assert(getDrive());
     return getDrive() ? getDrive()->getDeviceName() : QString();

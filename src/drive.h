@@ -2,27 +2,28 @@
     Copyright 2016-2019 Gleb Popov <6yearold@gmail.com>
     Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
 
-    Redistribution and use in source and binary forms, with or without modification,
-    are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
     1. Redistributions of source code must retain the above copyright notice,
     this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright notice,
     this list of conditions and the following disclaimer in the documentation
     and/or other materials provided with the distribution.
-    3. Neither the name of the copyright holder nor the names of its contributors may
-    be used to endorse or promote products derived from this software without specific
-    prior written permission.
+    3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from this
+   software without specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-    IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-    OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-    ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
@@ -51,8 +52,8 @@ class QUuid;
  *
  * http://storaged.org/doc/udisks2-api/latest/gdbus-org.freedesktop.UDisks2.Drive.html
  */
-class Drive : public QObject,
-              public QDBusContext {
+class Drive : public QObject, public QDBusContext
+{
     Q_OBJECT
 public:
     Drive() = default;
@@ -66,7 +67,7 @@ public:
 
     void setRemovable(bool);
 
-    void addBlock(const TBlock&);
+    void            addBlock(const TBlock&);
     const TBlockVec getBlocks() const;
 
     void setDuid(const QUuid&);
@@ -79,11 +80,11 @@ public:
 
     Q_PROPERTY(qulonglong Size READ driveSize)
     qulonglong driveSize() const;
-    void setSize(qulonglong);
+    void       setSize(qulonglong);
 
     Q_PROPERTY(QString Id READ id)
     QString id() const;
-    void setId(const QString&);
+    void    setId(const QString&);
 
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
@@ -110,7 +111,7 @@ public slots:
     void Eject(const QVariantMap& options);
 
 private:
-    QString m_Id;
+    QString   m_Id;
     TBlockVec m_blocks;
 
     const QString m_deviceName;
@@ -119,7 +120,7 @@ private:
 
     QString m_Vendor;
 
-    bool isRemovable = false;
+    bool       isRemovable = false;
     qulonglong size;
 
     // disklabel(8) UID
