@@ -1,4 +1,4 @@
 [D-BUS Service]
 Name=org.freedesktop.UDisks2
-Exec=@CMAKE_INSTALL_PREFIX@/bin/openbsdisks2 --syslog-output
+Exec=@CMAKE_INSTALL_PREFIX@/bin/openbsdisks2 --syslog
 User=root
