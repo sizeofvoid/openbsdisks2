@@ -46,40 +46,41 @@
 static bool alreadyMounted(QDir d)
 {
     struct statfs* buf;
-    int            count = ::getmntinfo(&buf, MNT_NOWAIT);
+    const int count = ::getmntinfo(&buf, MNT_NOWAIT);
 
-    if (!count) {
+    if (count <= 0) {
         QString error = QString::fromLocal8Bit(::strerror(errno));
         qDebug() << "alreadyMounted: getmntinfo failed: " << error;
         return false;
     }
 
     for (int i = 0; i < count; i++) {
-        QString mntOn = QString::fromLocal8Bit(buf[i].f_mntonname);
-        if (d == QDir(mntOn))
+        if (d == QDir(QString::fromLocal8Bit(buf[i].f_mntonname)))
             return true;
     }
 
     return false;
 }
 
-static QString createMountPoint(QString id, uid_t uid, int suff = 0)
+static QString createMountPoint(const QString& id, uid_t uid, int exists = 0)
 {
-    auto mp = suff == 0 ? QStringLiteral("/media/") + id : QStringLiteral("/media/") + id + QString::number(suff);
-    QDir mpDir(mp);
+    const QString mediaDir = exists == 0
+        ? QStringLiteral("/media/") + id
+        : QStringLiteral("/media/") + id + QString::number(exists);
 
-    if (mpDir.exists() && alreadyMounted(mpDir))
-        return createMountPoint(id, uid, ++suff);
+    if (QDir(mediaDir).exists() && alreadyMounted(mediaDir))
+        return createMountPoint(id, uid, ++exists);
 
-    mpDir.mkpath(".");
-
-    qDebug() << "chown of " << mpDir.absolutePath() << " to " << QString::number(uid);
-    if (::chown(mpDir.absolutePath().toLocal8Bit().constData(), uid, -1)) {
-        QString error = QString::fromLocal8Bit(::strerror(errno));
-        qDebug() << "createMountPoint: " << error;
+    if (!QDir().mkdir(mediaDir)) {
+        qDebug() << QString("Can't create the directory: ") + mediaDir;;
+        return QString();
     }
 
-    return mp;
+    if (::chown(mediaDir.toLocal8Bit().constData(), uid, -1)) {
+        qDebug() << "createMountPoint: " << QString::fromLocal8Bit(::strerror(errno));
+    }
+
+    return mediaDir;
 }
 
 static void removeMountPoint(QString mp, bool checkIfEmpty = false)
@@ -94,13 +95,11 @@ static void removeMountPoint(QString mp, bool checkIfEmpty = false)
     mpDir.rmdir(dirName);
 }
 
-QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
+QString BlockFilesystem::Mount(const Block& block, const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
 {
     // fail if already mounted
-    if (mountPoints.count() > 0) {
+    if (!getMountPoints().empty()) {
         QString error = "Mount: device already mounted";
-        // QString error = "Mount: device " + parentBlock()->id() + "already
-        // mounted";
         qDebug() << error;
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.AlreadyMounted", error));
         return QString();
@@ -119,30 +118,23 @@ QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn,
     uid_t uid = uidReply.value();
 
     QProcess mount;
-    QString  mountPoint;
-    //: createMountPoint(parentBlock()->id().replace(' ', '_'), uid);
-    QStringList args;
-
-    auto mountProg = QStringLiteral("/sbin/mount");
-    if (filesystem == "msdosfs") {
-        mountProg = QStringLiteral("/sbin/mount_msdosfs");
-    } else if (filesystem == "ntfs") {
-        mountProg = QStringLiteral("ntfs-3g");
-    } else if (filesystem == "cd9660") {
-        mountProg = QStringLiteral("/sbin/mount_cd9660");
-    } else if (filesystem == "ext2fs") {
-        mountProg = QStringLiteral("fuse2fs");
-
-        args << QStringLiteral("-o") << (QStringLiteral("uid=") + QString::number(uid));
-        args << QStringLiteral("-o") << QStringLiteral("allow_other");
-    } else if (filesystem == "exfat") {
-        mountProg = QStringLiteral("mount.exfat-fuse");
-
-        args << QStringLiteral("-o") << (QStringLiteral("uid=") + QString::number(uid));
-        args << QStringLiteral("-o") << QStringLiteral("allow_other");
+    const QString  mountPoint = createMountPoint(block.id().replace(' ', '_'), uid);
+    if (mountPoint.isEmpty()) {
+        QString error = "Mount: failed with " + mount.readAllStandardError();
+        qDebug() << error;
+        removeMountPoint(mountPoint);
+        conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", error));
+        return QString();
     }
 
-    // args << parentBlock()->device() << mountPoint;
+    QStringList args;
+    auto mountProg = QStringLiteral("/sbin/mount");
+    if (filesystem == "ffs") {
+        mountProg = QStringLiteral("/sbin/mount_ffs");
+    }
+
+    args << QString("/dev/") + block.getName() << mountPoint;
+    qDebug() << "args: " <<args;
 
     mount.setProgram(mountProg);
     mount.setArguments(args);
@@ -158,25 +150,26 @@ QString BlockFilesystem::Mount(const QVariantMap& options, QDBusConnection conn,
         return QString();
     }
 
-    mountPoints << mountPoint.toLocal8Bit();
+    mountPoints << mountPoint;
+    //qDebug() << "mountPoints: " << mountPoints.join(",");
 
     signalMountPointsChanged();
 
     return mountPoint;
 }
 
-void BlockFilesystem::Unmount(const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
+void BlockFilesystem::Unmount(const Block& block, const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
 {
-    if (mountPoints.empty()) {
-        QString error = "Unmount: requested filesystem is not mounted";
-        conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.NotMounted", error));
-        qDebug() << error;
+    if (getMountPoints().empty()) {
+        const QString err = "Unmount: requested filesystem is not mounted";
+        conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.NotMounted", err));
+        qDebug() << err;
         return;
     }
 
-    bool error = false;
-
-    for (auto mp = mountPoints.begin(); mp != mountPoints.end(); mp++) {
+    QStringListIterator mountIt(getMountPoints());
+    while (mountIt.hasNext())
+    {
         QProcess umount;
 
         QStringList args;
@@ -185,31 +178,27 @@ void BlockFilesystem::Unmount(const QVariantMap& options, QDBusConnection conn, 
             if (!it.value().isNull())
                 args << it.value().toString();
         }
-        args << QString::fromLocal8Bit(*mp);
+        args << mountIt.next();
 
         umount.start(QStringLiteral("/sbin/umount"), args);
         umount.waitForFinished(-1);
 
         if (umount.exitCode() == 0) {
-            removeMountPoint(QString::fromLocal8Bit(*mp),
-                             /*checkIfEmpty = */ true);
-            mountPoints.erase(mp);
+            removeMountPoint(mountIt.next(), /*checkIfEmpty = */ true);
+            mountPoints.removeAll(mountIt.next());
         } else {
             QString errorMessage = umount.readAllStandardError();
             conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
-            qDebug() << errorMessage;
-            error = true;
+            qDebug() << "org.freedesktop.UDisks2.Error.Failed " << errorMessage;
+            signalMountPointsChanged();
         }
     }
-
-    if (!error)
-        signalMountPointsChanged();
 }
 
 void BlockFilesystem::signalMountPointsChanged()
 {
     QVariantMap props;
-    props.insert(QStringLiteral("MountPoints"), QVariant::fromValue(mountPoints));
+    props.insert(QStringLiteral("MountPoints"), QVariant::fromValue(getMountPoints().join(",")));
 
     QDBusMessage signal = QDBusMessage::createSignal("", // XX parentBlock()->dbusPath.path(),
                                                      QStringLiteral("org.freedesktop.DBus.Properties"),
@@ -218,3 +207,19 @@ void BlockFilesystem::signalMountPointsChanged()
     signal << QStringLiteral("org.freedesktop.UDisks2.Filesystem") << props << QStringList();
     QDBusConnection::systemBus().send(signal);
 }
+
+const QStringList& BlockFilesystem::getMountPoints() const
+{
+    return mountPoints;
+}
+
+void BlockFilesystem::addMountPoint(const QString& mp)
+{
+    mountPoints << mp;
+}
+
+void BlockFilesystem::setFilesystem(const QString& fs)
+{
+    filesystem = fs;
+}
+

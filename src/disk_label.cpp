@@ -190,12 +190,12 @@ TBlockPartition DiskLabel::createPartition(const QString& partitionNumber, u_int
 TBlockFilesystem DiskLabel::createFilesystem(const TBlock& block, const QString& fstype)
 {
     auto bfs = std::make_shared<BlockFilesystem>();
-    bfs->filesystem = fstype;
+    bfs->setFilesystem(fstype);
 
     for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
         if (storage.isValid() && storage.isReady()) {
             if (!storage.device().compare(block->device().chopped(1))) {
-                bfs->mountPoints << storage.rootPath().toLocal8Bit();
+                bfs->addMountPoint(storage.rootPath());
                 break;
             }
         }

@@ -156,26 +156,20 @@ public:
 public slots:
     QString Mount(const QVariantMap& options)
     {
-        /*
         if (!getPartition() && !getPartition()->getFilesystem())
             return QString();
 
-        return getPartition()->getFilesystem()->Mount(options, connection(),
-        message());
-        */
-        qInfo("Not yet implemented.");
-        return QString();
+        return getPartition()->getFilesystem()->Mount(*this, options, connection(),
+                                                      message());
     }
+
     void Unmount(const QVariantMap& options)
     {
-        /*
         if (!getPartition() && !getPartition()->getFilesystem())
             return;
 
-        return getPartition()->getFilesystem()->Unmount(options, connection(),
-        message());
-        */
-        qInfo("Not yet implemented.");
+        return getPartition()->getFilesystem()->Unmount(*this, options, connection(),
+                                                        message());
     }
 
 private:

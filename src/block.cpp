@@ -185,12 +185,12 @@ QString Block::hintName() const
 QByteArrayList Block::mountPoints() const
 {
     if (getPartition() && getPartition()->getFilesystem()) {
-        QByteArrayList r;
+        QByteArrayList mps;
 
-        for (auto mp : getPartition()->getFilesystem()->mountPoints)
-            r << mp + '\0';
-
-        return r;
+        QStringListIterator mountIt(getPartition()->getFilesystem()->getMountPoints());
+        while (mountIt.hasNext())
+            mps.append(mountIt.next().toLocal8Bit());
+        return mps;
     }
     return QByteArrayList();
 }

@@ -31,24 +31,26 @@
 #include <QDBusMessage>
 #include <QString>
 #include <QVariantMap>
+#include <QStringList>
+
+class Block;
 
 class BlockFilesystem
 {
 public:
-    QString Mount(const QVariantMap& options)
-    {
-        return QString();
-    };
-    void Unmount(const QVariantMap& options) {};
+    QString Mount(const Block&, const QVariantMap& options, QDBusConnection, const QDBusMessage&);
 
-    QString Mount(const QVariantMap& options, QDBusConnection, const QDBusMessage&);
-    void    Unmount(const QVariantMap& options, QDBusConnection, const QDBusMessage&);
+    void Unmount(const Block&, const QVariantMap& options, QDBusConnection, const QDBusMessage&);
 
-    QString        filesystem;
-    QByteArrayList mountPoints;
+    void addMountPoint(const QString&);
+    const QStringList& getMountPoints() const;
+    void setFilesystem(const QString&);
 
 private:
     void signalMountPointsChanged();
+
+    QString filesystem;
+    QStringList mountPoints;
 };
 
 using TBlockFilesystem = std::shared_ptr<BlockFilesystem>;
