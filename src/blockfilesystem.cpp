@@ -100,10 +100,15 @@ QString BlockFilesystem::Mount(const Block&        block,
                                QDBusConnection     conn,
                                const QDBusMessage& msg)
 {
+    if (isFilesystemSupportedToMount()) {
+        const QString error = "Filesystem is not supported to mount";
+        conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", error));
+        return QString();
+    }
+
     // fail if already mounted
     if (!getMountPoints().empty()) {
-        QString error = "Mount: device already mounted";
-        qDebug() << error;
+        const QString error = "Mount: device already mounted";
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.AlreadyMounted", error));
         return QString();
     }
@@ -111,35 +116,28 @@ QString BlockFilesystem::Mount(const Block&        block,
     // https://dbus.freedesktop.org/doc/dbus-specification.html#bus-messages-get-connection-credentials
     auto uidReply = conn.interface()->serviceUid(msg.service());
     if (!uidReply.isValid()) {
-        QString error = "Mount: interface.serviceUid() failed";
-        qDebug() << error;
-
+        const QString error = "Mount: interface.serviceUid() failed";
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", error));
         return QString();
     }
 
-    uid_t uid = uidReply.value();
-
-    QProcess      mount;
-    const QString mountPoint = createMountPoint(block.id().replace(' ', '_'), uid);
+    QProcess mount;
+    const QString mountPoint = createMountPoint(block.id().replace(' ', '_'), uidReply.value());
     if (mountPoint.isEmpty()) {
-        QString error = "Mount: failed with " + mount.readAllStandardError();
-        qDebug() << error;
+        const QString error = "Mount: failed with " + mount.readAllStandardError();
         removeMountPoint(mountPoint);
         conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", error));
         return QString();
     }
 
-    QStringList args;
-    auto        mountProg = QStringLiteral("/sbin/mount");
-    if (filesystem == "ffs") {
-        mountProg = QStringLiteral("/sbin/mount_ffs");
-    }
-
-    args << QString("/dev/") + block.getName() << mountPoint;
-    qDebug() << "args: " << args;
+    const auto mountProg = getMountCommand();
+    if (!mountProg.isEmpty())
+        return QString();
 
     mount.setProgram(mountProg);
+
+    QStringList args;
+    args << QString("/dev/") + block.getName() << mountPoint;
     mount.setArguments(args);
 
     mount.start();
@@ -154,10 +152,7 @@ QString BlockFilesystem::Mount(const Block&        block,
     }
 
     mountPoints << mountPoint;
-    // qDebug() << "mountPoints: " << mountPoints.join(",");
-
     signalMountPointsChanged();
-
     return mountPoint;
 }
 
@@ -227,4 +222,18 @@ void BlockFilesystem::addMountPoint(const QString& mp)
 void BlockFilesystem::setFilesystem(const QString& fs)
 {
     filesystem = fs;
+}
+
+bool BlockFilesystem::isFilesystemSupportedToMount() const
+{
+    return (filesystem == "ffs");
+}
+
+const QString BlockFilesystem::getMountCommand() const
+{
+    QString mountProg;
+    if (filesystem == "ffs") {
+        mountProg = QStringLiteral("/sbin/mount_ffs");
+    }
+    return mountProg;
 }
