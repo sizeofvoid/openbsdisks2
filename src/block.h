@@ -159,8 +159,7 @@ public slots:
         if (!getPartition() && !getPartition()->getFilesystem())
             return QString();
 
-        return getPartition()->getFilesystem()->Mount(*this, options, connection(),
-                                                      message());
+        return getPartition()->getFilesystem()->Mount(*this, options, connection(), message());
     }
 
     void Unmount(const QVariantMap& options)
@@ -168,8 +167,7 @@ public slots:
         if (!getPartition() && !getPartition()->getFilesystem())
             return;
 
-        return getPartition()->getFilesystem()->Unmount(*this, options, connection(),
-                                                        message());
+        return getPartition()->getFilesystem()->Unmount(*this, options, connection(), message());
     }
 
 private:

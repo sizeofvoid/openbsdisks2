@@ -30,8 +30,8 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QString>
-#include <QVariantMap>
 #include <QStringList>
+#include <QVariantMap>
 
 class Block;
 
@@ -42,14 +42,14 @@ public:
 
     void Unmount(const Block&, const QVariantMap& options, QDBusConnection, const QDBusMessage&);
 
-    void addMountPoint(const QString&);
+    void               addMountPoint(const QString&);
     const QStringList& getMountPoints() const;
-    void setFilesystem(const QString&);
+    void               setFilesystem(const QString&);
 
 private:
     void signalMountPointsChanged();
 
-    QString filesystem;
+    QString     filesystem;
     QStringList mountPoints;
 };
 

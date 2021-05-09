@@ -2,7 +2,7 @@
 BasedOnStyle: WebKit
 Standard: Cpp11
 TabWidth: 4
-ColumnLimit: 120
+ColumnLimit: 100
 SortIncludes: true
 
 # Mostly 'Linux' style but with different enums

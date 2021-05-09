@@ -794,7 +794,9 @@ public Q_SLOTS: // METHODS
     QDBusUnixFileDescriptor OpenForRestore(const QVariantMap& options);
     void                    RemoveConfigurationItem(Configuration item, const QVariantMap& options);
     void                    Rescan(const QVariantMap& options);
-    void UpdateConfigurationItem(Configuration old_item, Configuration new_item, const QVariantMap& options);
+    void                    UpdateConfigurationItem(Configuration      old_item,
+                                                    Configuration      new_item,
+                                                    const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
 
@@ -2015,8 +2017,10 @@ public:
 
 public:         // PROPERTIES
 public Q_SLOTS: // METHODS
-    void ChangePassphrase(const QString& passphrase, const QString& new_passphrase, const QVariantMap& options);
-    void Lock(const QVariantMap& options);
+    void            ChangePassphrase(const QString&     passphrase,
+                                     const QString&     new_passphrase,
+                                     const QVariantMap& options);
+    void            Lock(const QVariantMap& options);
     QDBusObjectPath Unlock(const QString& passphrase, const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };

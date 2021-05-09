@@ -87,7 +87,8 @@ void DiskLabel::analyseDev(const QString& dev)
             QString p('a' + i);
             if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
-                    auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
+                    auto block = createBlock(
+                        getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
                     block->setId(sduid + p);
                     block->setIdLabel(lab.d_packname);
                     auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));

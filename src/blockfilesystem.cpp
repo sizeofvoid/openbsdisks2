@@ -46,7 +46,7 @@
 static bool alreadyMounted(QDir d)
 {
     struct statfs* buf;
-    const int count = ::getmntinfo(&buf, MNT_NOWAIT);
+    const int      count = ::getmntinfo(&buf, MNT_NOWAIT);
 
     if (count <= 0) {
         QString error = QString::fromLocal8Bit(::strerror(errno));
@@ -64,15 +64,15 @@ static bool alreadyMounted(QDir d)
 
 static QString createMountPoint(const QString& id, uid_t uid, int exists = 0)
 {
-    const QString mediaDir = exists == 0
-        ? QStringLiteral("/media/") + id
-        : QStringLiteral("/media/") + id + QString::number(exists);
+    const QString mediaDir = exists == 0 ? QStringLiteral("/media/") + id
+                                         : QStringLiteral("/media/") + id + QString::number(exists);
 
     if (QDir(mediaDir).exists() && alreadyMounted(mediaDir))
         return createMountPoint(id, uid, ++exists);
 
     if (!QDir().mkdir(mediaDir)) {
-        qDebug() << QString("Can't create the directory: ") + mediaDir;;
+        qDebug() << QString("Can't create the directory: ") + mediaDir;
+        ;
         return QString();
     }
 
@@ -95,7 +95,10 @@ static void removeMountPoint(QString mp, bool checkIfEmpty = false)
     mpDir.rmdir(dirName);
 }
 
-QString BlockFilesystem::Mount(const Block& block, const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
+QString BlockFilesystem::Mount(const Block&        block,
+                               const QVariantMap&  options,
+                               QDBusConnection     conn,
+                               const QDBusMessage& msg)
 {
     // fail if already mounted
     if (!getMountPoints().empty()) {
@@ -117,8 +120,8 @@ QString BlockFilesystem::Mount(const Block& block, const QVariantMap& options, Q
 
     uid_t uid = uidReply.value();
 
-    QProcess mount;
-    const QString  mountPoint = createMountPoint(block.id().replace(' ', '_'), uid);
+    QProcess      mount;
+    const QString mountPoint = createMountPoint(block.id().replace(' ', '_'), uid);
     if (mountPoint.isEmpty()) {
         QString error = "Mount: failed with " + mount.readAllStandardError();
         qDebug() << error;
@@ -128,13 +131,13 @@ QString BlockFilesystem::Mount(const Block& block, const QVariantMap& options, Q
     }
 
     QStringList args;
-    auto mountProg = QStringLiteral("/sbin/mount");
+    auto        mountProg = QStringLiteral("/sbin/mount");
     if (filesystem == "ffs") {
         mountProg = QStringLiteral("/sbin/mount_ffs");
     }
 
     args << QString("/dev/") + block.getName() << mountPoint;
-    qDebug() << "args: " <<args;
+    qDebug() << "args: " << args;
 
     mount.setProgram(mountProg);
     mount.setArguments(args);
@@ -151,14 +154,17 @@ QString BlockFilesystem::Mount(const Block& block, const QVariantMap& options, Q
     }
 
     mountPoints << mountPoint;
-    //qDebug() << "mountPoints: " << mountPoints.join(",");
+    // qDebug() << "mountPoints: " << mountPoints.join(",");
 
     signalMountPointsChanged();
 
     return mountPoint;
 }
 
-void BlockFilesystem::Unmount(const Block& block, const QVariantMap& options, QDBusConnection conn, const QDBusMessage& msg)
+void BlockFilesystem::Unmount(const Block&        block,
+                              const QVariantMap&  options,
+                              QDBusConnection     conn,
+                              const QDBusMessage& msg)
 {
     if (getMountPoints().empty()) {
         const QString err = "Unmount: requested filesystem is not mounted";
@@ -168,8 +174,7 @@ void BlockFilesystem::Unmount(const Block& block, const QVariantMap& options, QD
     }
 
     QStringListIterator mountIt(getMountPoints());
-    while (mountIt.hasNext())
-    {
+    while (mountIt.hasNext()) {
         QProcess umount;
 
         QStringList args;
@@ -200,9 +205,10 @@ void BlockFilesystem::signalMountPointsChanged()
     QVariantMap props;
     props.insert(QStringLiteral("MountPoints"), QVariant::fromValue(getMountPoints().join(",")));
 
-    QDBusMessage signal = QDBusMessage::createSignal("", // XX parentBlock()->dbusPath.path(),
-                                                     QStringLiteral("org.freedesktop.DBus.Properties"),
-                                                     QStringLiteral("PropertiesChanged"));
+    QDBusMessage signal =
+        QDBusMessage::createSignal("", // XX parentBlock()->dbusPath.path(),
+                                   QStringLiteral("org.freedesktop.DBus.Properties"),
+                                   QStringLiteral("PropertiesChanged"));
 
     signal << QStringLiteral("org.freedesktop.UDisks2.Filesystem") << props << QStringList();
     QDBusConnection::systemBus().send(signal);
@@ -222,4 +228,3 @@ void BlockFilesystem::setFilesystem(const QString& fs)
 {
     filesystem = fs;
 }
-
