@@ -47,9 +47,9 @@ public:
     void               setFilesystem(const QString&);
 
 private:
-    void signalMountPointsChanged();
-    bool isFilesystemSupportedToMount() const;
-    const QString getMountCommand() const;
+    void              signalMountPointsChanged();
+    bool              isFilesystemSupportedToMount() const;
+    const QString     getMountCommand() const;
     const QStringList getMountOptions() const;
 
     QString     filesystem;
