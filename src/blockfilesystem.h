@@ -50,6 +50,7 @@ private:
     void signalMountPointsChanged();
     bool isFilesystemSupportedToMount() const;
     const QString getMountCommand() const;
+    const QStringList getMountOptions() const;
 
     QString     filesystem;
     QStringList mountPoints;

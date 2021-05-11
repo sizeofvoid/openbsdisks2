@@ -88,7 +88,7 @@ static QString createMountPoint(const QString& id, uid_t uid, int exists = 0)
 static void removeMountPoint(QString mp, bool checkIfEmpty = false)
 {
     QDir mpDir(mp);
-    if (checkIfEmpty && mpDir.entryList().count() > 2) // '.' and '..' also counts
+    if (checkIfEmpty && !mpDir.isEmpty())
         return;
 
     const auto dirName = mpDir.dirName();
@@ -138,6 +138,7 @@ QString BlockFilesystem::Mount(const Block&        block,
     mount.setProgram(mountProg);
 
     QStringList args;
+    args += getMountOptions();
     args << QString("/dev/") + block.getName() << mountPoint;
     mount.setArguments(args);
 
@@ -152,7 +153,7 @@ QString BlockFilesystem::Mount(const Block&        block,
         return QString();
     }
 
-    mountPoints << mountPoint;
+    addMountPoint(mountPoint);
     signalMountPointsChanged();
     return mountPoint;
 }
@@ -169,28 +170,31 @@ void BlockFilesystem::Unmount(const Block&        block,
         return;
     }
 
+    QStringList mountOptions;
+    for (const QVariant& option : options) {
+        if (!option.isNull())
+            mountOptions << option.toString();
+    }
+
     QStringListIterator mountIt(getMountPoints());
     while (mountIt.hasNext()) {
-        const QString mount = mountIt.next();
-
+        const QString mountPoint = mountIt.next();
         QStringList args;
-        for (auto it = options.cbegin(); it != options.cend(); it++) {
-            args << it.key();
-            if (!it.value().isNull())
-                args << it.value().toString();
-        }
-        args << mount;
+        if (!mountOptions.isEmpty())
+            args << mountOptions;
+        args << mountPoint;
         QProcess umount;
         umount.start(QStringLiteral("/sbin/umount"), args);
         umount.waitForFinished(-1);
 
-        if (umount.exitCode() == 0) {
-            removeMountPoint(mount, /*checkIfEmpty = */ true);
-            mountPoints.removeAll(mount);
-        } else {
+        if (umount.exitCode()) {
+            removeMountPoint(mountPoint, true);
             QString errorMessage = umount.readAllStandardError();
             conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
             signalMountPointsChanged();
+        } else {
+            removeMountPoint(mountPoint, true);
+            mountPoints.removeAll(mountPoint);
         }
     }
 }
@@ -236,4 +240,13 @@ const QString BlockFilesystem::getMountCommand() const
         mountProg = QStringLiteral("/sbin/mount_ffs");
     }
     return mountProg;
+}
+
+const QStringList BlockFilesystem::getMountOptions() const
+{
+    QStringList mountOps;
+    if (filesystem == "ffs") {
+        mountOps << QStringLiteral("-orw,nodev,nosuid,noatime");
+    }
+    return mountOps;
 }
