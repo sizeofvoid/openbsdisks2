@@ -50,10 +50,10 @@ public:
     void setRegistered(bool);
     bool isUnregistered() const;
 
-    void            addPartition(const TBlockPartition&);
+    void addPartition(const TBlockPartition&);
     TBlockPartition getPartition() const;
 
-    void            addPartitionTable(const TBlockPartTable&);
+    void addPartitionTable(const TBlockPartTable&);
     TBlockPartTable getPartitionTable() const;
 
     QString driveName() const;
@@ -69,26 +69,26 @@ public:
 
     Q_PROPERTY(QString IdLabel READ idLabel)
     QString idLabel() const;
-    void    setIdLabel(const QString&);
+    void setIdLabel(const QString&);
 
     Q_PROPERTY(QByteArrayList Symlinks READ symlinks)
     QByteArrayList symlinks();
 
     Q_PROPERTY(QString Id READ id)
     QString id() const;
-    void    setId(const QString&);
+    void setId(const QString&);
 
     Q_PROPERTY(QString IdType READ getIdType)
     QString getIdType() const;
-    void    setIdType(const QString&);
+    void setIdType(const QString&);
 
     Q_PROPERTY(QString IdUsage READ getIdUsage)
     QString getIdUsage() const;
-    void    setIdUsage(const QString&);
+    void setIdUsage(const QString&);
 
     Q_PROPERTY(qulonglong Size READ getSize)
     qulonglong getSize() const;
-    void       setSize(qulonglong);
+    void setSize(qulonglong);
 
     Q_PROPERTY(bool HintIgnore READ hintIgnore)
     bool hintIgnore() const;

@@ -42,17 +42,17 @@ public:
 
     void Unmount(const Block&, const QVariantMap& options, QDBusConnection, const QDBusMessage&);
 
-    void               addMountPoint(const QString&);
+    void addMountPoint(const QString&);
     const QStringList& getMountPoints() const;
-    void               setFilesystem(const QString&);
+    void setFilesystem(const QString&);
 
 private:
-    void              signalMountPointsChanged();
-    bool              isFilesystemSupportedToMount() const;
-    const QString     getMountCommand() const;
+    void signalMountPointsChanged();
+    bool isFilesystemSupportedToMount() const;
+    const QString getMountCommand() const;
     const QStringList getMountOptions() const;
 
-    QString     filesystem;
+    QString filesystem;
     QStringList mountPoints;
 };
 

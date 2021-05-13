@@ -155,7 +155,7 @@ void ObjectManager::registerDrive(const TDrive& drive)
 }
 
 void ObjectManager::addInterfaces(
-    const QDBusObjectPath&                                  path,
+    const QDBusObjectPath& path,
     const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
 {
     qDebug() << "Add Interfaces";

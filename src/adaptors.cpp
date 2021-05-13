@@ -265,8 +265,8 @@ void BlockAdaptor::Rescan(const QVariantMap& options)
     QMetaObject::invokeMethod(parent(), "Rescan", Q_ARG(QVariantMap, options));
 }
 
-void BlockAdaptor::UpdateConfigurationItem(Configuration      old_item,
-                                           Configuration      new_item,
+void BlockAdaptor::UpdateConfigurationItem(Configuration old_item,
+                                           Configuration new_item,
                                            const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Block.UpdateConfigurationItem
@@ -732,8 +732,8 @@ EncryptedAdaptor::~EncryptedAdaptor()
     // destructor
 }
 
-void EncryptedAdaptor::ChangePassphrase(const QString&     passphrase,
-                                        const QString&     new_passphrase,
+void EncryptedAdaptor::ChangePassphrase(const QString& passphrase,
+                                        const QString& new_passphrase,
                                         const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Encrypted.ChangePassphrase
@@ -1092,7 +1092,7 @@ QString ManagerAdaptor::version() const
 }
 
 QDBusObjectPath ManagerAdaptor::LoopSetup(const QDBusUnixFileDescriptor& fd,
-                                          const QVariantMap&             options)
+                                          const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Manager.LoopSetup
     QDBusObjectPath resulting_device;
@@ -1105,10 +1105,10 @@ QDBusObjectPath ManagerAdaptor::LoopSetup(const QDBusUnixFileDescriptor& fd,
 }
 
 QDBusObjectPath ManagerAdaptor::MDRaidCreate(const QList<QDBusObjectPath>& blocks,
-                                             const QString&                level,
-                                             const QString&                name,
-                                             qulonglong                    chunk,
-                                             const QVariantMap&            options)
+                                             const QString& level,
+                                             const QString& name,
+                                             qulonglong chunk,
+                                             const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.Manager.MDRaidCreate
     QDBusObjectPath resulting_array;
@@ -1248,10 +1248,10 @@ QString PartitionTableAdaptor::type() const
     return qvariant_cast<QString>(parent()->property("PartitionTable_Type"));
 }
 
-QDBusObjectPath PartitionTableAdaptor::CreatePartition(qulonglong         offset,
-                                                       qulonglong         size,
-                                                       const QString&     type,
-                                                       const QString&     name,
+QDBusObjectPath PartitionTableAdaptor::CreatePartition(qulonglong offset,
+                                                       qulonglong size,
+                                                       const QString& type,
+                                                       const QString& name,
                                                        const QVariantMap& options)
 {
     // handle method call org.freedesktop.UDisks2.PartitionTable.CreatePartition

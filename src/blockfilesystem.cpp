@@ -46,7 +46,7 @@
 static bool alreadyMounted(QDir d)
 {
     struct statfs* buf;
-    const int      count = ::getmntinfo(&buf, MNT_NOWAIT);
+    const int count = ::getmntinfo(&buf, MNT_NOWAIT);
 
     if (count <= 0) {
         QString error = QString::fromLocal8Bit(::strerror(errno));
@@ -96,9 +96,9 @@ static void removeMountPoint(QString mp, bool checkIfEmpty = false)
     mpDir.rmdir(dirName);
 }
 
-QString BlockFilesystem::Mount(const Block&        block,
-                               const QVariantMap&  options,
-                               QDBusConnection     conn,
+QString BlockFilesystem::Mount(const Block& block,
+                               const QVariantMap& options,
+                               QDBusConnection conn,
                                const QDBusMessage& msg)
 {
     if (!isFilesystemSupportedToMount()) {
@@ -122,7 +122,7 @@ QString BlockFilesystem::Mount(const Block&        block,
         return QString();
     }
 
-    QProcess      mount;
+    QProcess mount;
     const QString mountPoint = createMountPoint(block.id().replace(' ', '_'), uidReply.value());
     if (mountPoint.isEmpty()) {
         const QString error = "Mount: failed with " + mount.readAllStandardError();
@@ -158,9 +158,9 @@ QString BlockFilesystem::Mount(const Block&        block,
     return mountPoint;
 }
 
-void BlockFilesystem::Unmount(const Block&        block,
-                              const QVariantMap&  options,
-                              QDBusConnection     conn,
+void BlockFilesystem::Unmount(const Block& block,
+                              const QVariantMap& options,
+                              QDBusConnection conn,
                               const QDBusMessage& msg)
 {
     if (getMountPoints().empty()) {
@@ -179,7 +179,7 @@ void BlockFilesystem::Unmount(const Block&        block,
     QStringListIterator mountIt(getMountPoints());
     while (mountIt.hasNext()) {
         const QString mountPoint = mountIt.next();
-        QStringList   args;
+        QStringList args;
         if (!mountOptions.isEmpty())
             args << mountOptions;
         args << mountPoint;

@@ -34,7 +34,7 @@ class BlockPartTable
 {
 public:
     BlockPartTable() = default;
-    void    setTableType(const QString&);
+    void setTableType(const QString&);
     QString tableType() const;
 
 private:

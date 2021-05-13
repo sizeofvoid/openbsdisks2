@@ -34,15 +34,15 @@ class BlockPartition
 public:
     BlockPartition(const QString&);
 
-    void             addFilesystem(const TBlockFilesystem&);
+    void addFilesystem(const TBlockFilesystem&);
     TBlockFilesystem getFilesystem() const;
 
     QString name() const;
 
     // XXX
-    QString    partitionType;
-    QString    partBlockName;
-    uint       number;
+    QString partitionType;
+    QString partBlockName;
+    uint number;
     qulonglong offset;
     qulonglong size;
 

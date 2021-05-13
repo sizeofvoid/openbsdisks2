@@ -25,11 +25,11 @@ class QVariant;
 
 struct Configuration
 {
-    QString     type;
+    QString type;
     QVariantMap data;
 };
 Q_DECLARE_METATYPE(Configuration)
-QDBusArgument&       operator<<(QDBusArgument& argument, const Configuration& cfg);
+QDBusArgument& operator<<(QDBusArgument& argument, const Configuration& cfg);
 const QDBusArgument& operator>>(const QDBusArgument& argument, Configuration& cfg);
 
 typedef QList<Configuration> ConfigurationList;
@@ -786,17 +786,17 @@ public: // PROPERTIES
     QByteArrayList symlinks() const;
 
 public Q_SLOTS: // METHODS
-    void                    AddConfigurationItem(Configuration item, const QVariantMap& options);
-    void                    Format(const QString& type, const QVariantMap& options);
-    ConfigurationList       GetSecretConfiguration(const QVariantMap& options);
+    void AddConfigurationItem(Configuration item, const QVariantMap& options);
+    void Format(const QString& type, const QVariantMap& options);
+    ConfigurationList GetSecretConfiguration(const QVariantMap& options);
     QDBusUnixFileDescriptor OpenForBackup(const QVariantMap& options);
     QDBusUnixFileDescriptor OpenForBenchmark(const QVariantMap& options);
     QDBusUnixFileDescriptor OpenForRestore(const QVariantMap& options);
-    void                    RemoveConfigurationItem(Configuration item, const QVariantMap& options);
-    void                    Rescan(const QVariantMap& options);
-    void                    UpdateConfigurationItem(Configuration      old_item,
-                                                    Configuration      new_item,
-                                                    const QVariantMap& options);
+    void RemoveConfigurationItem(Configuration item, const QVariantMap& options);
+    void Rescan(const QVariantMap& options);
+    void UpdateConfigurationItem(Configuration old_item,
+                                 Configuration new_item,
+                                 const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
 
@@ -1919,15 +1919,15 @@ public: // PROPERTIES
     bool writeCacheSupported() const;
 
 public Q_SLOTS: // METHODS
-    uchar        PmGetState(const QVariantMap& options);
-    void         PmStandby(const QVariantMap& options);
-    void         PmWakeup(const QVariantMap& options);
-    void         SecurityEraseUnit(const QVariantMap& options);
+    uchar PmGetState(const QVariantMap& options);
+    void PmStandby(const QVariantMap& options);
+    void PmWakeup(const QVariantMap& options);
+    void SecurityEraseUnit(const QVariantMap& options);
     QVariantList SmartGetAttributes(const QVariantMap& options);
-    void         SmartSelftestAbort(const QVariantMap& options);
-    void         SmartSelftestStart(const QString& type, const QVariantMap& options);
-    void         SmartSetEnabled(bool value, const QVariantMap& options);
-    void         SmartUpdate(const QVariantMap& options);
+    void SmartSelftestAbort(const QVariantMap& options);
+    void SmartSelftestStart(const QString& type, const QVariantMap& options);
+    void SmartSetEnabled(bool value, const QVariantMap& options);
+    void SmartUpdate(const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
 
@@ -2017,10 +2017,10 @@ public:
 
 public:         // PROPERTIES
 public Q_SLOTS: // METHODS
-    void            ChangePassphrase(const QString&     passphrase,
-                                     const QString&     new_passphrase,
-                                     const QVariantMap& options);
-    void            Lock(const QVariantMap& options);
+    void ChangePassphrase(const QString& passphrase,
+                          const QString& new_passphrase,
+                          const QVariantMap& options);
+    void Lock(const QVariantMap& options);
     QDBusObjectPath Unlock(const QString& passphrase, const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
@@ -2179,8 +2179,8 @@ public: // PROPERTIES
 
 public Q_SLOTS: // METHODS
     QString Mount(const QVariantMap& options);
-    void    SetLabel(const QString& label, const QVariantMap& options);
-    void    Unmount(const QVariantMap& options);
+    void SetLabel(const QString& label, const QVariantMap& options);
+    void Unmount(const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
 
@@ -2982,10 +2982,10 @@ public: // PROPERTIES
 public Q_SLOTS: // METHODS
     QDBusObjectPath LoopSetup(const QDBusUnixFileDescriptor& fd, const QVariantMap& options);
     QDBusObjectPath MDRaidCreate(const QList<QDBusObjectPath>& blocks,
-                                 const QString&                level,
-                                 const QString&                name,
-                                 qulonglong                    chunk,
-                                 const QVariantMap&            options);
+                                 const QString& level,
+                                 const QString& name,
+                                 qulonglong chunk,
+                                 const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };
 
@@ -3270,10 +3270,10 @@ public: // PROPERTIES
     QString type() const;
 
 public Q_SLOTS: // METHODS
-    QDBusObjectPath CreatePartition(qulonglong         offset,
-                                    qulonglong         size,
-                                    const QString&     type,
-                                    const QString&     name,
+    QDBusObjectPath CreatePartition(qulonglong offset,
+                                    qulonglong size,
+                                    const QString& type,
+                                    const QString& name,
                                     const QVariantMap& options);
 Q_SIGNALS: // SIGNALS
 };

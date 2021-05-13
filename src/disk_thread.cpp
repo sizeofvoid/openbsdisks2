@@ -39,7 +39,7 @@
 QString DiskThread::readDisknames() const
 {
     size_t len = 0;
-    int    mib[2];
+    int mib[2];
     mib[0] = CTL_HW;
     mib[1] = HW_DISKNAMES;
 
@@ -75,7 +75,7 @@ void DiskThread::check()
 {
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
     const QString disks = readDisknames();
-    const auto    devNameUuids = getCurrentDev(disks);
+    const auto devNameUuids = getCurrentDev(disks);
 
     for (const auto& devNameUuid : devNameUuids)
         addNewDevices(devNameUuid.first);

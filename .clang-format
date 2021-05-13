@@ -24,7 +24,7 @@ BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: None
 Cpp11BracedListStyle: true
-KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLinesAtTheStartOfBlocks: true
 NamespaceIndentation: None
 SpaceAfterTemplateKeyword: false
-AlignConsecutiveDeclarations: true
+AlignConsecutiveDeclarations: false

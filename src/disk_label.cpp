@@ -42,8 +42,8 @@ DiskLabel::DiskLabel(const QString& dev)
 void DiskLabel::analyseDev(const QString& dev)
 {
     struct disklabel lab;
-    char*            specname;
-    int              f = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &specname);
+    char* specname;
+    int f = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &specname);
 
     if (ioctl(f, DIOCGDINFO, &lab) == -1) {
         close(f);
