@@ -154,7 +154,7 @@ QString BlockFilesystem::Mount(const Block& block,
     }
 
     addMountPoint(mountPoint);
-    signalMountPointsChanged();
+    signalMountPointsChanged(block);
     return mountPoint;
 }
 
@@ -191,7 +191,7 @@ void BlockFilesystem::Unmount(const Block& block,
             removeMountPoint(mountPoint, true);
             QString errorMessage = umount.readAllStandardError();
             conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
-            signalMountPointsChanged();
+            signalMountPointsChanged(block);
         } else {
             removeMountPoint(mountPoint, true);
             mountPoints.removeAll(mountPoint);
@@ -199,13 +199,13 @@ void BlockFilesystem::Unmount(const Block& block,
     }
 }
 
-void BlockFilesystem::signalMountPointsChanged()
+void BlockFilesystem::signalMountPointsChanged(const Block& block)
 {
     QVariantMap props;
     props.insert(QStringLiteral("MountPoints"), QVariant::fromValue(getMountPoints().join(",")));
 
     QDBusMessage signal =
-        QDBusMessage::createSignal("", // XX parentBlock()->dbusPath.path(),
+        QDBusMessage::createSignal(block.getDbusPath().path(),
                                    QStringLiteral("org.freedesktop.DBus.Properties"),
                                    QStringLiteral("PropertiesChanged"));
 
