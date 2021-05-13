@@ -230,10 +230,8 @@ void BlockFilesystem::setFilesystem(const QString& fs)
 
 bool BlockFilesystem::isFilesystemSupportedToMount() const
 {
-    return (filesystem == "ffs"
-            || filesystem == "ext2fs"
-            || filesystem == "ntfs"
-            || filesystem == "msdos");
+    return (filesystem == "ffs" || filesystem == "ext2fs" || filesystem == "ntfs" ||
+            filesystem == "msdos");
 }
 
 const QString BlockFilesystem::getMountCommand() const
@@ -241,14 +239,11 @@ const QString BlockFilesystem::getMountCommand() const
     QString mountProg;
     if (filesystem == "ffs") {
         mountProg = QStringLiteral("/sbin/mount_ffs");
-    }
-    else if (filesystem == "ext2fs") {
+    } else if (filesystem == "ext2fs") {
         mountProg = QStringLiteral("/sbin/mount_ext2fs");
-    }
-    else if (filesystem == "ntfs") {
+    } else if (filesystem == "ntfs") {
         mountProg = QStringLiteral("/sbin/mount_ntfs");
-    }
-    else if (filesystem == "ntfs") {
+    } else if (filesystem == "ntfs") {
         mountProg = QStringLiteral("/sbin/mount_msdos");
     }
     return mountProg;
@@ -259,14 +254,11 @@ const QStringList BlockFilesystem::getMountOptions() const
     QStringList mountOps;
     if (filesystem == "ffs") {
         mountOps << QStringLiteral("-orw,nodev,nosuid,noatime");
-    }
-    else if (filesystem == "ext2fs") {
+    } else if (filesystem == "ext2fs") {
         mountOps << QStringLiteral("-orw,nodev,nosuid,noatime");
-    }
-    else if (filesystem == "msdos") {
+    } else if (filesystem == "msdos") {
         mountOps << QStringLiteral("-orw");
-    }
-    else if (filesystem == "ntfs") {
+    } else if (filesystem == "ntfs") {
         mountOps << QStringLiteral("-oro");
     }
     return mountOps;
