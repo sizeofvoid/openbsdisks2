@@ -83,7 +83,8 @@ void Drive::Eject(const QVariantMap& options)
     int fd = open((QStringLiteral("/dev/") + getDeviceName()).toLocal8Bit().constData(), O_RDONLY);
     if (fd < 0 && errno != ENXIO) {
         QString errorMessage = ::strerror(errno);
-        connection().send(message().createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
+        connection().send(
+            message().createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
         qDebug() << "Eject failed: " << errorMessage;
         return;
     }
@@ -92,7 +93,8 @@ void Drive::Eject(const QVariantMap& options)
     int rc = ::ioctl(fd, CDIOCEJECT);
     if (rc < 0) {
         QString errorMessage = ::strerror(errno);
-        connection().send(message().createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
+        connection().send(
+            message().createErrorReply("org.freedesktop.UDisks2.Error.Failed", errorMessage));
         qDebug() << "Eject failed: " << errorMessage;
         return;
     }

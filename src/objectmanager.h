@@ -57,10 +57,11 @@ private:
     void registerDrive(const TDrive&);
     bool registerBlock(const TBlock&, bool = true);
 
-    void addInterfaces(const QDBusObjectPath&, const QList<std::pair<QString, QDBusAbstractAdaptor*>>&);
+    void addInterfaces(const QDBusObjectPath&,
+                       const QList<std::pair<QString, QDBusAbstractAdaptor*>>&);
     void removeInterfaces(const QDBusObjectPath&, const QStringList&);
 
-    bool                   initialProbeDone;
+    bool initialProbeDone;
     QHash<QString, TBlock> m_blockObjects;
     QHash<QString, TDrive> m_driveObjects;
 };

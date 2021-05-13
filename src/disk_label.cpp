@@ -42,8 +42,8 @@ DiskLabel::DiskLabel(const QString& dev)
 void DiskLabel::analyseDev(const QString& dev)
 {
     struct disklabel lab;
-    char*            specname;
-    int              f = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &specname);
+    char* specname;
+    int f = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &specname);
 
     if (ioctl(f, DIOCGDINFO, &lab) == -1) {
         close(f);
@@ -87,7 +87,8 @@ void DiskLabel::analyseDev(const QString& dev)
             QString p('a' + i);
             if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
-                    auto block = createBlock(getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
+                    auto block = createBlock(
+                        getDeviceName() + p, QString(fstypesnames[pp->p_fstype]), blockSize);
                     block->setId(sduid + p);
                     block->setIdLabel(lab.d_packname);
                     auto fs = createFilesystem(block, QString(fstypesnames[pp->p_fstype]));
@@ -190,12 +191,12 @@ TBlockPartition DiskLabel::createPartition(const QString& partitionNumber, u_int
 TBlockFilesystem DiskLabel::createFilesystem(const TBlock& block, const QString& fstype)
 {
     auto bfs = std::make_shared<BlockFilesystem>();
-    bfs->filesystem = fstype;
+    bfs->setFilesystem(fstype);
 
     for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
         if (storage.isValid() && storage.isReady()) {
             if (!storage.device().compare(block->device().chopped(1))) {
-                bfs->mountPoints << storage.rootPath().toLocal8Bit();
+                bfs->addMountPoint(storage.rootPath());
                 break;
             }
         }

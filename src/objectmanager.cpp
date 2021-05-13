@@ -15,14 +15,18 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
 
         for (QObject* child : o->children()) {
             if (QDBusAbstractAdaptor* adaptor = qobject_cast<QDBusAbstractAdaptor*>(child)) {
-                const QString& iface = adaptor->metaObject()
-                                           ->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface"))
-                                           .value();
+                const QString& iface =
+                    adaptor->metaObject()
+                        ->classInfo(adaptor->metaObject()->indexOfClassInfo("D-Bus Interface"))
+                        .value();
 
                 QVariantMap properties;
-                for (int i = adaptor->metaObject()->propertyOffset(); i < adaptor->metaObject()->propertyCount(); ++i) {
+                for (int i = adaptor->metaObject()->propertyOffset();
+                     i < adaptor->metaObject()->propertyCount();
+                     ++i) {
                     auto propertyName = adaptor->metaObject()->property(i).name();
-                    properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
+                    properties.insert(QString::fromLatin1(propertyName),
+                                      adaptor->property(propertyName));
                 }
 
                 interfaces[iface] = properties;
@@ -111,7 +115,8 @@ bool ObjectManager::registerBlock(const TBlock& block, bool tryPostponed)
         QString devPath = block->getDbusPath().path();
 
         QList<std::pair<QString, QDBusAbstractAdaptor*>> interfaces;
-        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"), new BlockAdaptor(block.get()));
+        interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Block"),
+                                     new BlockAdaptor(block.get()));
 
         if (block->getPartition() && block->getPartition()->getFilesystem())
             interfaces << std::make_pair(QStringLiteral("org.freedesktop.UDisks2.Filesystem"),
@@ -149,8 +154,9 @@ void ObjectManager::registerDrive(const TDrive& drive)
                   {std::make_pair("org.freedesktop.UDisks2.Drive", new DriveAdaptor(drive.get()))});
 }
 
-void ObjectManager::addInterfaces(const QDBusObjectPath&                                  path,
-                                  const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
+void ObjectManager::addInterfaces(
+    const QDBusObjectPath& path,
+    const QList<std::pair<QString, QDBusAbstractAdaptor*>>& newInterfaces)
 {
     qDebug() << "Add Interfaces";
     QVariantMapMap interfaces;
@@ -161,7 +167,9 @@ void ObjectManager::addInterfaces(const QDBusObjectPath&                        
         QDBusAbstractAdaptor* adaptor = pair.second;
 
         QVariantMap properties;
-        for (int i = adaptor->metaObject()->propertyOffset(); i < adaptor->metaObject()->propertyCount(); ++i) {
+        for (int i = adaptor->metaObject()->propertyOffset();
+             i < adaptor->metaObject()->propertyCount();
+             ++i) {
             auto propertyName = adaptor->metaObject()->property(i).name();
             properties.insert(QString::fromLatin1(propertyName), adaptor->property(propertyName));
         }

@@ -110,9 +110,11 @@ int main(int argc, char** argv)
     if (syslog_output)
         setprogname("openbsdisks2");
 
-    debug = QCoreApplication::arguments().contains("--debug") || QCoreApplication::arguments().contains("-d");
+    debug = QCoreApplication::arguments().contains("--debug") ||
+        QCoreApplication::arguments().contains("-d");
 
-    verbose = QCoreApplication::arguments().contains("--verbose") || QCoreApplication::arguments().contains("-v");
+    verbose = QCoreApplication::arguments().contains("--verbose") ||
+        QCoreApplication::arguments().contains("-v");
 
     new ObjectManagerAdaptor(&manager);
 

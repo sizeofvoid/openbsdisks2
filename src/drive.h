@@ -67,7 +67,7 @@ public:
 
     void setRemovable(bool);
 
-    void            addBlock(const TBlock&);
+    void addBlock(const TBlock&);
     const TBlockVec getBlocks() const;
 
     void setDuid(const QUuid&);
@@ -80,11 +80,11 @@ public:
 
     Q_PROPERTY(qulonglong Size READ driveSize)
     qulonglong driveSize() const;
-    void       setSize(qulonglong);
+    void setSize(qulonglong);
 
     Q_PROPERTY(QString Id READ id)
     QString id() const;
-    void    setId(const QString&);
+    void setId(const QString&);
 
     Q_PROPERTY(QString Serial READ serial)
     QString serial() const;
@@ -111,7 +111,7 @@ public slots:
     void Eject(const QVariantMap& options);
 
 private:
-    QString   m_Id;
+    QString m_Id;
     TBlockVec m_blocks;
 
     const QString m_deviceName;
@@ -120,7 +120,7 @@ private:
 
     QString m_Vendor;
 
-    bool       isRemovable = false;
+    bool isRemovable = false;
     qulonglong size;
 
     // disklabel(8) UID

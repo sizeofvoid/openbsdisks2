@@ -2,7 +2,7 @@
 BasedOnStyle: WebKit
 Standard: Cpp11
 TabWidth: 4
-ColumnLimit: 120
+ColumnLimit: 100
 SortIncludes: true
 
 # Mostly 'Linux' style but with different enums
@@ -24,7 +24,7 @@ BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: None
 Cpp11BracedListStyle: true
-KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLinesAtTheStartOfBlocks: true
 NamespaceIndentation: None
 SpaceAfterTemplateKeyword: false
-AlignConsecutiveDeclarations: true
+AlignConsecutiveDeclarations: false

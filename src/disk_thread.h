@@ -39,11 +39,11 @@ private slots:
     void check();
 
 private:
-    QString                                  readDisknames() const;
-    void                                     addNewDevices(const QString&);
-    void                                     removeDevices(const QString&);
+    QString readDisknames() const;
+    void addNewDevices(const QString&);
+    void removeDevices(const QString&);
     std::vector<std::pair<QString, QString>> getCurrentDev(const QString&);
 
-    QTimer*       m_t;
+    QTimer* m_t;
     TDiskLabelVec diskLabels;
 };

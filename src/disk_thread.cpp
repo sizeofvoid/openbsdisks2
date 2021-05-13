@@ -39,7 +39,7 @@
 QString DiskThread::readDisknames() const
 {
     size_t len = 0;
-    int    mib[2];
+    int mib[2];
     mib[0] = CTL_HW;
     mib[1] = HW_DISKNAMES;
 
@@ -75,16 +75,16 @@ void DiskThread::check()
 {
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
     const QString disks = readDisknames();
-    const auto    devNameUuids = getCurrentDev(disks);
+    const auto devNameUuids = getCurrentDev(disks);
 
     for (const auto& devNameUuid : devNameUuids)
         addNewDevices(devNameUuid.first);
 
     std::vector<QString> toDelete;
     for (auto const& dl : diskLabels) {
-        if (std::none_of(std::begin(devNameUuids), std::end(devNameUuids), [&](auto const& du) -> bool {
-                return du.first == dl->getDeviceName();
-            })) {
+        if (std::none_of(std::begin(devNameUuids),
+                         std::end(devNameUuids),
+                         [&](auto const& du) -> bool { return du.first == dl->getDeviceName(); })) {
             toDelete.push_back(dl->getDeviceName());
             emit deviceRemoved(dl->getDrive());
         }
@@ -96,17 +96,19 @@ void DiskThread::check()
 
 void DiskThread::removeDevices(const QString& devName)
 {
-    diskLabels.erase(std::remove_if(diskLabels.begin(),
-                                    diskLabels.end(),
-                                    [&](TDiskLabel const& d) -> bool { return devName == d->getDeviceName(); }),
-                     diskLabels.end());
+    diskLabels.erase(
+        std::remove_if(diskLabels.begin(),
+                       diskLabels.end(),
+                       [&](TDiskLabel const& d) -> bool { return devName == d->getDeviceName(); }),
+        diskLabels.end());
 }
 
 void DiskThread::addNewDevices(const QString& devName)
 {
-    if (std::find_if(std::begin(diskLabels), std::end(diskLabels), [&](TDiskLabel const& d) -> bool {
-            return devName == d->getDeviceName();
-        }) == std::end(diskLabels)) {
+    if (std::find_if(
+            std::begin(diskLabels), std::end(diskLabels), [&](TDiskLabel const& d) -> bool {
+                return devName == d->getDeviceName();
+            }) == std::end(diskLabels)) {
         auto dl = std::make_shared<DiskLabel>(devName);
         if (dl->isValid()) {
             diskLabels.push_back(dl);
