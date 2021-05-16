@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 Rafael Sadowski <rafael@sizeofvoid.org>
- * Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
+ * Copyright 2021 Rafael Sadowski <rs@rsadowski.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,28 +24,16 @@
 /**
  * disklabel – read disk pack label
  */
-class DiskLabel
+class CdHandler
 {
 public:
-    DiskLabel() = default;
-    DiskLabel(const QString&);
-
-    bool isValid() const;
-    TDrive getDrive() const;
-    QString getDeviceName() const;
+    void check();
+    const TDriveVec& getDevices() const;
 
 private:
-    void analyseDev(const QString&);
-    bool isValidFileSysetem(u_int8_t) const;
+    QStringList const getBlockCDROMdevices() const;
 
-    void createDrive(const QString&);
-    TBlock createBlock(const QString&, const QString&, u_int64_t);
-    TBlockPartition createPartition(const QString&, u_int64_t);
-    TBlockFilesystem createFilesystem(const TBlock&, const QString&);
-
-    TDrive m_drive = nullptr;
-
+    TDriveVec m_drives;
 };
 
-using TDiskLabel = std::shared_ptr<DiskLabel>;
-using TDiskLabelVec = std::vector<TDiskLabel>;
+using TCdHandler = std::shared_ptr<CdHandler>;

@@ -40,6 +40,7 @@ set(SOURCE
     src/manageradaptor.cpp
     src/objectmanager.cpp
 
+    src/cdhandler.cpp
     src/disk_thread.cpp
     src/disk_label.cpp
 )

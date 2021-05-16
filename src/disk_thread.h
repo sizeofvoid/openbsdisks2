@@ -23,6 +23,7 @@
 #include <QTimer>
 
 #include "disk_label.h"
+#include "cdhandler.h"
 
 class DiskThread : public QThread
 {
@@ -46,4 +47,5 @@ private:
 
     QTimer* m_t;
     TDiskLabelVec diskLabels;
+    TCdHandler m_cd;
 };

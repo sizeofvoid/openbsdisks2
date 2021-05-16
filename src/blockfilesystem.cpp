@@ -231,7 +231,7 @@ void BlockFilesystem::setFilesystem(const QString& fs)
 bool BlockFilesystem::isFilesystemSupportedToMount() const
 {
     return (filesystem == "ffs" || filesystem == "ext2fs" || filesystem == "ntfs" ||
-            filesystem == "msdos");
+            filesystem == "msdos" || filesystem == "cd9660");
 }
 
 const QString BlockFilesystem::getMountCommand() const
@@ -245,6 +245,8 @@ const QString BlockFilesystem::getMountCommand() const
         mountProg = QStringLiteral("/sbin/mount_ntfs");
     } else if (filesystem == "ntfs") {
         mountProg = QStringLiteral("/sbin/mount_msdos");
+    } else if (filesystem == "cd9660") {
+        mountProg = QStringLiteral("/sbin/mount_cd9660");
     }
     return mountProg;
 }
@@ -259,6 +261,8 @@ const QStringList BlockFilesystem::getMountOptions() const
     } else if (filesystem == "msdos") {
         mountOps << QStringLiteral("-orw");
     } else if (filesystem == "ntfs") {
+        mountOps << QStringLiteral("-oro");
+    } else if (filesystem == "cd9660") {
         mountOps << QStringLiteral("-oro");
     }
     return mountOps;

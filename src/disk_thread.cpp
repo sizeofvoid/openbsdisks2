@@ -66,6 +66,7 @@ QString DiskThread::readDisknames() const
 void DiskThread::run()
 {
     m_t = new QTimer();
+    m_cd = std::make_shared<CdHandler>();
     connect(m_t, SIGNAL(timeout()), this, SLOT(check()));
     m_t->start(1000);
     exec();
@@ -73,6 +74,11 @@ void DiskThread::run()
 
 void DiskThread::check()
 {
+    m_cd->check();
+    for (auto const& cd : m_cd->getDevices()) {
+        emit deviceAdded(cd);
+    }
+
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
     const QString disks = readDisknames();
     const auto devNameUuids = getCurrentDev(disks);
