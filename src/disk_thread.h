@@ -22,8 +22,8 @@
 #include <QThread>
 #include <QTimer>
 
-#include "disk_label.h"
 #include "cdhandler.h"
+#include "disk_label.h"
 
 class DiskThread : public QThread
 {

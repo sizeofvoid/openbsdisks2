@@ -18,21 +18,18 @@
 #include "cdhandler.h"
 
 #include <fcntl.h>
-#include <util.h>
 #include <unistd.h>
+#include <util.h>
 
 #include <QDebug>
 #include <QStringList>
 
-
 void CdHandler::check()
 {
-    for (const QString& dev : getBlockCDROMdevices())
-    {
-        char *realdev;
+    for (const QString& dev : getBlockCDROMdevices()) {
+        char* realdev;
         const int fd = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &realdev);
-        if (fd != -1)
-        {
+        if (fd != -1) {
             auto cd = std::make_shared<Drive>(dev);
             cd->setRemovable(true);
             cd->setId(QString(realdev).replace("/dev/", "dev_"));
@@ -52,7 +49,6 @@ void CdHandler::check()
             m_drives.push_back(cd);
             close(fd);
         }
-
     }
 }
 
@@ -60,11 +56,10 @@ void CdHandler::check()
  * return a list of all possible device names
  * /dev/cd[0-9][a-p]   block mode CD-ROM devices
  */
-QStringList const
-CdHandler::getBlockCDROMdevices() const
+QStringList const CdHandler::getBlockCDROMdevices() const
 {
     QStringList devs;
-    for (const QString& dev : QStringList( {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"} ))
+    for (const QString& dev : QStringList({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}))
         devs << dev + "c";
     return devs;
 }

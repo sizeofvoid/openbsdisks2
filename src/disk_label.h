@@ -45,7 +45,6 @@ private:
     TBlockFilesystem createFilesystem(const TBlock&, const QString&);
 
     TDrive m_drive = nullptr;
-
 };
 
 using TDiskLabel = std::shared_ptr<DiskLabel>;
