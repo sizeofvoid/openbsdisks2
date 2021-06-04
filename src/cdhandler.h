@@ -18,22 +18,29 @@
 #pragma once
 
 #include "drive.h"
-#include <QObject>
-#include <QString>
+
+#include "disk_label.h"
+
+class QString;
 
 /**
  * disklabel – read disk pack label
  */
-class CdHandler
+class CdHandler : public DiskLabel
 {
 public:
-    void check();
-    const TDriveVec& getDevices() const;
+    CdHandler(const QString&);
+
+    CdHandler() = default;
+    ~CdHandler() = default;
+
+    static QStringList const getBlockCDROMdevices();
 
 private:
-    QStringList const getBlockCDROMdevices() const;
 
-    TDriveVec m_drives;
+     void analyseDev(const QString&) override;
+
 };
 
 using TCdHandler = std::shared_ptr<CdHandler>;
+using TCdHandlerVec = std::vector<TCdHandler>;

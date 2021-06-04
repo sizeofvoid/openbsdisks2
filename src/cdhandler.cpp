@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Rafael Sadowski <rafael@sizeofvoid.org>
+ * Copyright 2021 Rafael Sadowski <rafael@sizeofvoid.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,54 +17,31 @@
 
 #include "cdhandler.h"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <util.h>
+#include "drive.h"
 
-#include <QDebug>
 #include <QStringList>
 
-void CdHandler::check()
+CdHandler::CdHandler(const QString& dev)
+    : DiskLabel(dev)
 {
-    for (const QString& dev : getBlockCDROMdevices()) {
-        char* realdev;
-        const int fd = opendev(dev.toLocal8Bit().data(), O_RDONLY, OPENDEV_PART, &realdev);
-        if (fd != -1) {
-            auto cd = std::make_shared<Drive>(dev);
-            cd->setRemovable(true);
-            cd->setId(QString(realdev).replace("/dev/", "dev_"));
+    analyseDev(dev);
+}
 
-            auto block = std::make_shared<Block>(dev);
-            block->setIdUsage(QStringLiteral("cd9660"));
-            block->setIdType(QStringLiteral("cd9660"));
-
-            auto bfs = std::make_shared<BlockFilesystem>();
-            bfs->setFilesystem(QStringLiteral("cd9660"));
-
-            auto partition = std::make_shared<BlockPartition>(QStringLiteral("a"));
-            partition->addFilesystem(bfs);
-            block->addPartition(partition);
-            cd->addBlock(block);
-
-            m_drives.push_back(cd);
-            close(fd);
-        }
-    }
+void CdHandler::analyseDev(const QString& dev)
+{
+    DiskLabel::analyseDev(dev);
+    if (getDrive())
+        getDrive()->setRemovable(true);
 }
 
 /**
  * return a list of all possible device names
  * /dev/cd[0-9][a-p]   block mode CD-ROM devices
  */
-QStringList const CdHandler::getBlockCDROMdevices() const
+QStringList const CdHandler::getBlockCDROMdevices()
 {
     QStringList devs;
     for (const QString& dev : QStringList({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}))
-        devs << dev + "c";
+        devs << "rcd" + dev;
     return devs;
-}
-
-const TDriveVec& CdHandler::getDevices() const
-{
-    return m_drives;
 }

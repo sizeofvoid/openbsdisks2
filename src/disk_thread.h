@@ -47,5 +47,5 @@ private:
 
     QTimer* m_t;
     TDiskLabelVec diskLabels;
-    TCdHandler m_cd;
+    TCdHandlerVec m_cds;
 };

@@ -29,14 +29,16 @@ class DiskLabel
 {
 public:
     DiskLabel() = default;
+    virtual ~DiskLabel() = default;
+
     DiskLabel(const QString&);
 
     bool isValid() const;
     TDrive getDrive() const;
     QString getDeviceName() const;
 
-private:
-    void analyseDev(const QString&);
+protected:
+    virtual void analyseDev(const QString&);
     bool isValidFileSysetem(u_int8_t) const;
 
     void createDrive(const QString&);

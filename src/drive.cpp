@@ -155,12 +155,12 @@ void Drive::setDuid(const QUuid& duid)
 
 bool Drive::ejectable() const
 {
-    return isRemovable;
+    return removable();
 }
 
 bool Drive::removable() const
 {
-    return isRemovable;
+    return optical() || isRemovable;
 }
 
 bool Drive::mediaRemovable() const
