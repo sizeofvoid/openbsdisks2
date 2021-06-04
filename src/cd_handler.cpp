@@ -15,7 +15,7 @@
  *
  */
 
-#include "cdhandler.h"
+#include "cd_handler.h"
 
 #include "drive.h"
 

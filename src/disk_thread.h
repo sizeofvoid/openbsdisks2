@@ -22,7 +22,7 @@
 #include <QThread>
 #include <QTimer>
 
-#include "cdhandler.h"
+#include "cd_handler.h"
 #include "disk_label.h"
 
 class DiskThread : public QThread
