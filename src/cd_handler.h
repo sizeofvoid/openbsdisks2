@@ -37,9 +37,7 @@ public:
     static QStringList const getBlockCDROMdevices();
 
 private:
-
-     void analyseDev(const QString&) override;
-
+    void analyseDev(const QString&) override;
 };
 
 using TCdHandler = std::shared_ptr<CdHandler>;
