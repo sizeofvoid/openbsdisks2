@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 Rafael Sadowski <rafael@sizeofvoid.org>
- * Copyright 2020-2021 Rafael Sadowski <rs@rsadowski.de>
+ * Copyright 2021 Rafael Sadowski <rafael@sizeofvoid.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,36 +15,33 @@
  *
  */
 
-#pragma once
-
-#include <QString>
-#include <QThread>
-#include <QTimer>
-
 #include "cd_handler.h"
-#include "disk_label.h"
 
-class DiskThread : public QThread
+#include "drive.h"
+
+#include <QStringList>
+
+CdHandler::CdHandler(const QString& dev)
+    : DiskLabel(dev)
 {
-    Q_OBJECT
-public:
-    void run() override;
+    analyseDev(dev);
+}
 
-signals:
-    void deviceAdded(TDrive);
-    void blockAdded(TBlock);
-    void deviceRemoved(TDrive);
+void CdHandler::analyseDev(const QString& dev)
+{
+    DiskLabel::analyseDev(dev);
+    if (getDrive())
+        getDrive()->setRemovable(true);
+}
 
-private slots:
-    void check();
-
-private:
-    QString readDisknames() const;
-    void addNewDevices(const QString&);
-    void removeDevices(const QString&);
-    std::vector<std::pair<QString, QString>> getCurrentDev(const QString&);
-
-    QTimer* m_t;
-    TDiskLabelVec diskLabels;
-    TCdHandlerVec m_cds;
-};
+/**
+ * return a list of all possible device names
+ * /dev/cd[0-9][a-p]   block mode CD-ROM devices
+ */
+QStringList const CdHandler::getBlockCDROMdevices()
+{
+    QStringList devs;
+    for (const QString& dev : QStringList({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}))
+        devs << "rcd" + dev;
+    return devs;
+}

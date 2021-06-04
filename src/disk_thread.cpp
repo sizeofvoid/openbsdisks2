@@ -73,6 +73,14 @@ void DiskThread::run()
 
 void DiskThread::check()
 {
+    for (auto const& name : CdHandler::getBlockCDROMdevices()) {
+        auto cd = std::make_shared<CdHandler>(name);
+        if (cd->isValid()) {
+            m_cds.push_back(cd);
+            emit deviceAdded(cd->getDrive());
+        }
+    }
+
     // "sd0:6e6c992178f67d41,sd2:0f191ebc5bc2aa61,sd1:"
     const QString disks = readDisknames();
     const auto devNameUuids = getCurrentDev(disks);

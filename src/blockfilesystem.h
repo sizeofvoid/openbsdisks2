@@ -33,6 +33,8 @@
 #include <QStringList>
 #include <QVariantMap>
 
+#include <memory>
+
 class Block;
 
 class BlockFilesystem

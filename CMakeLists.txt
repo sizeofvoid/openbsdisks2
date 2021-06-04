@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.16.0)
 
 # Version setup
 set(OPENBSDISKS_VERSION_MAJOR "0")
-set(OPENBSDISKS_VERSION_MINOR "2")
-set(OPENBSDISKS_VERSION_PATCH "3")
+set(OPENBSDISKS_VERSION_MINOR "3")
+set(OPENBSDISKS_VERSION_PATCH "0")
 set(OPENBSDISKS_VERSION "${OPENBSDISKS_VERSION_MAJOR}.${OPENBSDISKS_VERSION_MINOR}.${OPENBSDISKS_VERSION_PATCH}")
 
 project(openbsdisks2
@@ -40,6 +40,7 @@ set(SOURCE
     src/manageradaptor.cpp
     src/objectmanager.cpp
 
+    src/cd_handler.cpp
     src/disk_thread.cpp
     src/disk_label.cpp
 )

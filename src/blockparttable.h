@@ -30,6 +30,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <memory>
+
 class BlockPartTable
 {
 public:
