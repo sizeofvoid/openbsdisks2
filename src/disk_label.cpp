@@ -36,7 +36,7 @@
 
 DiskLabel::DiskLabel(const QString& dev)
 {
-    analyseDev(dev);
+    DiskLabel::analyseDev(dev);
 }
 
 void DiskLabel::analyseDev(const QString& dev)
@@ -193,7 +193,8 @@ TBlockFilesystem DiskLabel::createFilesystem(const TBlock& block, const QString&
     auto bfs = std::make_shared<BlockFilesystem>();
     bfs->setFilesystem(fstype);
 
-    for (const QStorageInfo& storage : QStorageInfo::mountedVolumes()) {
+    const auto volumes = QStorageInfo::mountedVolumes();
+    for (const QStorageInfo& storage : volumes) {
         if (storage.isValid() && storage.isReady()) {
             if (!storage.device().compare(block->device().chopped(1))) {
                 bfs->addMountPoint(storage.rootPath());

@@ -24,7 +24,7 @@
 CdHandler::CdHandler(const QString& dev)
     : DiskLabel(dev)
 {
-    analyseDev(dev);
+    CdHandler::analyseDev(dev);
 }
 
 void CdHandler::analyseDev(const QString& dev)
@@ -40,8 +40,5 @@ void CdHandler::analyseDev(const QString& dev)
  */
 QStringList const CdHandler::getBlockCDROMdevices()
 {
-    QStringList devs;
-    for (const QString& dev : QStringList({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}))
-        devs << "rcd" + dev;
-    return devs;
+    return {"rcd0", "rcd1", "rcd2", "rcd3", "rcd4", "rcd5", "rcd6", "rcd7", "rcd8", "rcd9"};
 }
