@@ -35,10 +35,10 @@ DBUSManagerStruct ObjectManager::GetManagedObjects()
         ret[dbusPath] = interfaces;
     };
 
-    for (const auto& d : m_driveObjects)
+    for (const auto& d : qAsConst(m_driveObjects))
         addDBUSManagerStruct(d.get(), d->getDbusPath());
 
-    for (const auto& b : m_blockObjects)
+    for (const auto& b : qAsConst(m_blockObjects))
         addDBUSManagerStruct(b.get(), b->getDbusPath());
 
     return ret;
@@ -161,7 +161,7 @@ void ObjectManager::addInterfaces(
     qDebug() << "Add Interfaces";
     QVariantMapMap interfaces;
 
-    for (auto pair : newInterfaces) {
+    for (const auto& pair : newInterfaces) {
         const QString& iface = pair.first;
         qDebug() << "Add Interface: " << iface;
         QDBusAbstractAdaptor* adaptor = pair.second;

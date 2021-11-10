@@ -57,7 +57,7 @@ QString DiskThread::readDisknames() const
         }
 
         const QString disks(disknames);
-        delete disknames;
+        free(disknames);
         return disks;
     }
     return QString();
@@ -137,7 +137,6 @@ std::vector<std::pair<QString, QString>> DiskThread::getCurrentDev(const QString
         const QStringList name2Uuid = nameUuid.split(QLatin1Char(':'));
         // We want both name2Uuid und uuid to verify valid devices
         if (name2Uuid.size() >= 1) {
-            QString dev = name2Uuid.at(0);
             devNameUuids.emplace_back(name2Uuid.at(0), name2Uuid.at(1));
         }
     }

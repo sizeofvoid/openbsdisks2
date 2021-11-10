@@ -38,6 +38,5 @@ QString BlockPartTable::tableType() const
         return QStringLiteral("dos");
     if (m_tableType == QStringLiteral("GPT"))
         return QStringLiteral("gpt");
-
     return QString();
 }
