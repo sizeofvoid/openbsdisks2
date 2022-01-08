@@ -243,7 +243,7 @@ const QString BlockFilesystem::getMountCommand() const
         mountProg = QStringLiteral("/sbin/mount_ext2fs");
     } else if (filesystem == "ntfs") {
         mountProg = QStringLiteral("/sbin/mount_ntfs");
-    } else if (filesystem == "ntfs") {
+    } else if (filesystem == "msdos") {
         mountProg = QStringLiteral("/sbin/mount_msdos");
     } else if (filesystem == "cd9660") {
         mountProg = QStringLiteral("/sbin/mount_cd9660");
