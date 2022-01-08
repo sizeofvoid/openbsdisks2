@@ -5,6 +5,21 @@ An UDisks2 service implementation for OpenBSD forked from FreeBSD (bsdutils/bsdi
 
 The sourcecode based on commit [3d3439348ba00ae972e146c5bf28cb42949e24f](https://foss.heptapod.net/bsdutils/bsdisks/-/commit/93d3439348ba00ae972e146c5bf28cb42949e24f) from [bsdutils/bsdisks](https://foss.heptapod.net/bsdutils/bsdisks).
 
+## Build on OpenBSD
+```bash
+$ doas pkg_add qtbase
+$ Qt5_DIR=/usr/local/lib/qt5/cmake cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ~/src/github/openbsdisks2
+$ ninja -v
+# Run install to dbus-1 files
+$ ninja install
+# Run a simple test
+$ ./openbsdisks2 -d -v
+# Run clang-tidy
+$ doas pkg_add clang-tools-extra
+$ clang-tidy --list-checks -checks='*' | grep "modernize"
+$ run-clang-tidy -header-filter='.*' -checks='-*,modernize-use-nullptr'
+```
+
 ### Feature List
  - [X] Simple DBus org.freedesktop.UDisks2.service
  - [X] Provides `org.freedesktop.UDisks2.Block`
