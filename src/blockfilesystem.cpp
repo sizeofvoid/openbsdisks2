@@ -40,7 +40,7 @@
 #include <sys/param.h>
 #include <sys/ucred.h>
 
-#include <errno.h>
+#include <cerrno>
 #include <unistd.h>
 
 static bool alreadyMounted(QDir d)
