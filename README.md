@@ -18,6 +18,8 @@ $ ./openbsdisks2 -d -v
 $ doas pkg_add clang-tools-extra
 $ clang-tidy --list-checks -checks='*' | grep "modernize"
 $ run-clang-tidy -header-filter='.*' -checks='-*,modernize-use-nullptr'
+# and fix it
+$ run-clang-tidy -header-filter='.*' -checks='-*,modernize-use-nullptr' -fix
 ```
 
 ### Feature List
