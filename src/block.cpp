@@ -238,7 +238,7 @@ qulonglong Block::partitionSize() const
 QString Block::partitionType() const
 {
     if (!getPartition())
-        return 0;
+        return nullptr;
 
     return getPartition()->partitionType;
 }
