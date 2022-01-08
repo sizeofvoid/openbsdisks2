@@ -32,7 +32,7 @@
 class BlockPartition
 {
 public:
-    BlockPartition(const QString&);
+    BlockPartition(QString );
 
     void addFilesystem(const TBlockFilesystem&);
     TBlockFilesystem getFilesystem() const;

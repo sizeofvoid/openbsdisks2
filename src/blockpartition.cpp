@@ -27,8 +27,10 @@
 
 #include "blockpartition.h"
 
-BlockPartition::BlockPartition(const QString& name)
-    : m_name(name)
+#include <utility>
+
+BlockPartition::BlockPartition(QString  name)
+    : m_name(std::move(name))
 {
 }
 
