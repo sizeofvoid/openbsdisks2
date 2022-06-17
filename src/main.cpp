@@ -107,8 +107,10 @@ int main(int argc, char** argv)
     }
 
     syslog_output = QCoreApplication::arguments().contains("--syslog");
+#if defined(__OpenBSD__)
     if (syslog_output)
         setprogname("openbsdisks2");
+#endif
 
     debug = QCoreApplication::arguments().contains("--debug") ||
         QCoreApplication::arguments().contains("-d");

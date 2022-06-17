@@ -38,7 +38,9 @@
 
 #include <sys/mount.h>
 #include <sys/param.h>
+#if defined(__OpenBSD__)
 #include <sys/ucred.h>
+#endif
 
 #include <errno.h>
 #include <unistd.h>
