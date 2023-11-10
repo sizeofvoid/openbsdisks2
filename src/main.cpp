@@ -86,6 +86,7 @@ static void msg_handler(QtMsgType type, const QMessageLogContext& context, const
 
 int main(int argc, char** argv)
 {
+#if defined(__OpenBSD__)
     if (unveil("/", "rwc") == -1)
         err(1, "unveil /");
     if (unveil("/sbin/umount", "rx") == -1)
@@ -102,6 +103,7 @@ int main(int argc, char** argv)
         err(1, "unveil /sbin/mount_cd9660");
     if (unveil(NULL, NULL) == -1)
         err(1, "unveil NULL");
+#endif
 
     qInstallMessageHandler(msg_handler);
 
