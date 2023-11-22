@@ -75,7 +75,7 @@ static QString createMountPoint(const QString& id, uid_t uid, int exists = 0)
     if (QDir(mediaDir).exists() && alreadyMounted(mediaDir))
         return createMountPoint(id, uid, ++exists);
 
-    if (!QDir().mkdir(mediaDir)) {
+    if (!QDir().mkpath(mediaDir)) {
         qDebug() << QString("Can't create the directory: ") + mediaDir;
         return QString();
     }
