@@ -84,7 +84,7 @@ static void msg_handler(QtMsgType type, const QMessageLogContext& context, const
     }
 }
 
-int main(int argc, char** argv)
+void setup_unvail()
 {
 #if defined(__OpenBSD__)
     if (unveil("/", "rwc") == -1)
@@ -104,6 +104,13 @@ int main(int argc, char** argv)
     if (unveil(NULL, NULL) == -1)
         err(1, "unveil NULL");
 #endif
+}
+
+int main(int argc, char** argv)
+{
+    setup_unvail();
+    QCoreApplication::setSetuidAllowed(true);
+    QCoreApplication app(argc, argv);
 
     qInstallMessageHandler(msg_handler);
 
@@ -118,9 +125,6 @@ int main(int argc, char** argv)
     qDBusRegisterMetaType<ConfigurationList>();
     qDBusRegisterMetaType<QVariantMapMap>();
     qDBusRegisterMetaType<DBUSManagerStruct>();
-
-    QCoreApplication::setSetuidAllowed(true);
-    QCoreApplication app(argc, argv);
 
     if (!QDBusConnection::systemBus().registerService("org.freedesktop.UDisks2")) {
         qCritical() << "Could not register UDisks2 service";
