@@ -118,8 +118,13 @@ void Block::setId(const QString& id)
 
 QString Block::idLabel() const
 {
-    if (!getName().isEmpty() && !m_IdLabel.isEmpty())
-        return getName() + " - " + m_IdLabel;
+    if (!getName().isEmpty())
+    {
+        if (!m_IdLabel.trimmed().isEmpty())
+            return getName() + " - " + m_IdLabel;
+        if (!m_Id.trimmed().isEmpty())
+            return getName() + " - " + m_Id;
+    }
     return getName();
 }
 
