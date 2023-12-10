@@ -124,19 +124,12 @@ QString BlockFilesystem::Mount(const Block& block,
         return QString();
     }
 
-    QProcess mount;
-    const QString mountPoint = createMountPoint(block.id().replace(' ', '_'), uidReply.value());
-    if (mountPoint.isEmpty()) {
-        const QString error = "Mount: failed with " + mount.readAllStandardError();
-        removeMountPoint(mountPoint);
-        conn.send(msg.createErrorReply("org.freedesktop.UDisks2.Error.Failed", error));
-        return QString();
-    }
-
+    const auto mountPoint = createMountPoint(block.id().replace(' ', '_'), uidReply.value());
     const auto mountProg = getMountCommand();
     if (mountProg.isEmpty())
         return QString();
 
+    QProcess mount;
     mount.setProgram(mountProg);
 
     QStringList args;
