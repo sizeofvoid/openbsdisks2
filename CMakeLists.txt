@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16.0)
 
 # Version setup
 set(OPENBSDISKS_VERSION_MAJOR "0")
-set(OPENBSDISKS_VERSION_MINOR "4")
+set(OPENBSDISKS_VERSION_MINOR "5")
 set(OPENBSDISKS_VERSION_PATCH "0")
 set(OPENBSDISKS_VERSION "${OPENBSDISKS_VERSION_MAJOR}.${OPENBSDISKS_VERSION_MINOR}.${OPENBSDISKS_VERSION_PATCH}")
 
@@ -25,8 +25,7 @@ option(INSTALL_MAN_PAGES "Install man pages" ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-set(QT5COMPONENTS Core DBus)
-find_package(Qt5 COMPONENTS ${QT5COMPONENTS} REQUIRED)
+find_package(Qt6 COMPONENTS Core DBus REQUIRED)
 find_package(Threads REQUIRED)
 
 set(SOURCE
@@ -46,7 +45,7 @@ set(SOURCE
 )
 add_executable(openbsdisks2 ${SOURCE})
 
-target_link_libraries(openbsdisks2 Qt5::DBus Qt5::Core util)
+target_link_libraries(openbsdisks2 Qt6::DBus Qt6::Core util)
 
 target_compile_features(openbsdisks2 PRIVATE cxx_std_17)
 target_compile_options(openbsdisks2 PRIVATE "-Wall")
