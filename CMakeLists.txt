@@ -17,6 +17,8 @@ if(NOT CMAKE_BUILD_TYPE)
             FORCE)
 endif()
 
+set(QT_MAJOR_VERSION 6 CACHE STRING "Qt version to use (5 or 6), defaults to 6")
+
 include(GNUInstallDirs)
 
 option(INSTALL_POLKIT_RULES "Install polkit rules" OFF)
@@ -25,7 +27,7 @@ option(INSTALL_MAN_PAGES "Install man pages" ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 COMPONENTS Core DBus REQUIRED)
+find_package(Qt${QT_MAJOR_VERSION} COMPONENTS Core DBus REQUIRED)
 find_package(Threads REQUIRED)
 
 set(SOURCE
@@ -45,7 +47,7 @@ set(SOURCE
 )
 add_executable(openbsdisks2 ${SOURCE})
 
-target_link_libraries(openbsdisks2 Qt6::DBus Qt6::Core util)
+target_link_libraries(openbsdisks2 Qt${QT_MAJOR_VERSION}::DBus Qt${QT_MAJOR_VERSION}::Core util)
 
 target_compile_features(openbsdisks2 PRIVATE cxx_std_17)
 target_compile_options(openbsdisks2 PRIVATE "-Wall")
