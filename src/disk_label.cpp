@@ -84,7 +84,7 @@ void DiskLabel::analyseDev(const QString& dev)
     for (int i = 0; i < lab.d_npartitions; i++) {
         pp = &lab.d_partitions[i];
         if (DL_GETPSIZE(pp) > 0) {
-            QString p('a' + i);
+            const QString p = QChar('a' + i);
             if (p != QStringLiteral("c")) {
                 if (isValidFileSysetem(pp->p_fstype)) {
                     auto block = createBlock(
